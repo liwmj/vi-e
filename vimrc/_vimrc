@@ -1,0 +1,2136 @@
+" 1.工程化用户配置 " {{{
+
+" 工作目录
+let g:myWorkRootPath = $HOME . '/SourceCode'
+
+" 以下为项目配置，采用环境变量灵活使用，拷贝vimproject.bat | .sh文件到项目目录
+
+" <C/C++ 项目配置>
+" -----------------------------------------------------------------------------
+" 用户项目配置，只能同时支持一个项目，新的项目就复制一份重新配置，把这份注释掉。
+" 注：以下配置不包括Go语言的设置，并默认采用C/C++的设置，其他语言只需进行配置。
+
+" 作者信息
+let g:myAuthorInfo = $i_AUTHOR
+" 组织名称
+let g:myOrganizationName = $i_ORGANIZATION
+" 许可证名字
+let g:myLicenseName = $i_LICENSE
+
+" Debug/Release
+let g:myIsDebug = $i_ISDEBUG
+
+" 运行或者debug之前是否构建
+let g:myRunPreMake = $i_RUN_PRE_MAKE
+
+" 程序项目路径
+let g:myProjectPath = $i_PROJECTPATH
+" 程序项目构建路径
+let g:myProjectMakePath = $i_PROJECTBUILD
+" 程序运行路径
+let g:myProgramPath = $i_PROJECTBIN
+" 程序运行名
+let g:myProgramName = $i_APPNAME
+" 程序运行前参数
+let g:myProgramOneParam = $i_APP_PREFIX_PARAM
+" 程序运行后参数
+let g:myProgramTwoParam = $i_APP_SUFFIX_PARAM
+" 头文件和源文件搜索路径，可指定文件的目录
+let g:mySearchProjectPath = $i_SEARCHPATH
+let g:mySearchPathName = $i_SEARCHNAME
+" 构建器以及参数（设置为空，将采用默认值make -j4）
+let g:myMakeDebugTools = $i_BUILDDEBUG_TOOL
+let g:myMakeReleaseTools = $i_BUILDRELEASE_TOOL
+let g:myMakeCleanTools = $i_CLEAN_TOOL
+
+" 调试器以及参数（设置为空，将采用默认值pyclewn）
+let g:myDebugTools = $i_DEBUG_TOOL
+
+" <Go 项目配置>
+" -----------------------------------------------------------------------------
+" Go 项目路径
+let g:myGoProjectPath = $GOPATH
+" Go 程序运行路径
+let g:myGoProgramPath = $GOBIN
+" Go 程序运行名
+let g:myGoProgramName = $i_GOAPPNAME
+" 程序运行前参数
+let g:myGoProgramOneParam = $i_GOAPP_PREFIX_PARAM
+" 程序运行后参数
+let g:myGoProgramTwoParam = $i_GOAPP_SUFFIX_PARAM
+" Go 构建器及参数
+let g:myGoMakeDebugTools = $i_GOBUILDDEBUG_TOOL
+let g:myGoMakeReleaseTools = $i_GOBUILDRELEASE_TOOL
+let g:myGoMakeCleanTools = $i_GOCLEAN_TOOL
+
+" 调试器以及参数（设置为空，将采用默认值pyclewn）
+let g:myGoDebugTools = $i_GODEBUG_TOOL
+" Go 测试工具
+let g:myGoTestTools = $i_GOTEST_TOOL
+
+" }}}
+
+" 2.自定义变量初始化 " {{{
+
+" <自定义变量初始化>
+" -----------------------------------------------------------------------------
+
+" 查询字典
+let g:browserDictUrl = 'http://dict.cn/text'
+let g:isBaidu = 0
+
+" 浏览器预览设置
+let g:windowsHtdocs = 'C:\\Users\\wim\\SourceCode\\www\\htdocs'
+let g:linuxHtdocs = '/home/wim/SourceCode/www/htdocs'
+let g:windowsBrowsers = {
+            \'cr':'C:/Program Files (x86)/Google/Chrome/Application/Chrome.exe',
+            \'ff':'D:/Program Files (x86)/Mozilla Firefox/Firefox.exe',
+            \'op':'C:/Program Files (x86)/Opera/launcher.exe',
+            \'sa':'C:/Program Files (x86)/Safari/Safari.exe',
+            \'ie':'C:/progra~1/intern~1/iexplore.exe',
+            \'ie6':'C:/Developer/IETester/IETester.exe -ie6',
+            \'ie7':'C:/Developer/IETester/IETester.exe -ie7',
+            \'ie8':'C:/Developer/IETester/IETester.exe -ie8',
+            \'ie9':'C:/Developer/IETester/IETester.exe -ie9',
+            \'iea':'C:/Developer/IETester/IETester.exe -all'
+\}
+let g:linuxBrowsers = {
+            \'cr':'/opt/google/chrome',
+            \'ff':'/usr/bin/firefox',
+            \'sa':'open -a Safari',
+            \'mcr':'open -a "Google Chrome"',
+            \'mff':'open -a Firefox'
+\}
+
+" }}}
+
+" 3.跨平台初始化设置 " {{{
+
+" <判断操作系统是否是 Windows 还是 Linux>
+" -----------------------------------------------------------------------------
+let g:isWindows = 0
+let g:isLinux = 0
+if(has("win32") || has("win64") || has("win95") || has("win16"))
+    let g:isWindows = 1
+else
+    let g:isLinux = 1
+endif
+
+" <判断是终端还是 Gvim>
+" -----------------------------------------------------------------------------
+if has("gui_running")
+    let g:isGUI = 1
+else
+    let g:isGUI = 0
+endif
+
+" <Windows Gvim 默认配置> 做了一点修改
+" -----------------------------------------------------------------------------
+if (g:isWindows && g:isGUI)
+    source $VIMRUNTIME/vimrc_example.vim
+    source $VIMRUNTIME/mswin.vim
+    behave mswin
+    set diffexpr=MyDiff()
+
+    function! MyDiff()
+        let opt = '-a --binary '
+        if &diffopt =~ 'icase' | let opt = opt . '-i ' | endif
+        if &diffopt =~ 'iwhite' | let opt = opt . '-b ' | endif
+        let arg1 = v:fname_in
+        if arg1 =~ ' ' | let arg1 = '"' . arg1 . '"' | endif
+        let arg2 = v:fname_new
+        if arg2 =~ ' ' | let arg2 = '"' . arg2 . '"' | endif
+        let arg3 = v:fname_out
+        if arg3 =~ ' ' | let arg3 = '"' . arg3 . '"' | endif
+        let eq = ''
+        if $VIMRUNTIME =~ ' '
+            if &sh =~ '\<cmd'
+                " let cmd = '""' . $VIMRUNTIME . '\diff"'
+                " let eq = '"'
+                let cmd = '"' . $VIMRUNTIME . '\diff"'
+                let eq = '""'                             "解决diff E97问题
+            else
+                let cmd = substitute($VIMRUNTIME, ' ', '" ', '') . '\diff"'
+            endif
+        else
+            let cmd = $VIMRUNTIME . '\diff'
+        endif
+        silent execute '!' . cmd . ' ' . opt . arg1 . ' ' . arg2 . ' > ' . arg3 . eq
+    endfunction
+endif
+
+" <Linux Gvim/Vim 默认配置> 做了一点修改
+" -----------------------------------------------------------------------------
+if g:isLinux
+    source $VIMRUNTIME/mswin.vim
+    behave mswin
+
+    set hlsearch        "高亮搜索
+    set incsearch       "在输入要搜索的文字时，实时匹配
+
+    " Uncomment the following to have Vim jump to the last position when
+    " reopening a file
+    if has("autocmd")
+        autocmd BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g'\"" | endif
+    endif
+
+    if g:isGUI
+        " Source a global configuration file if available
+        if filereadable("/etc/vim/gvimrc.local")
+            source /etc/vim/gvimrc.local
+        endif
+    else
+        " This line should not be removed as it ensures that various options are
+        " properly set to work with the Vim-related packages available in Debian.
+        runtime! debian.vim
+
+        " Vim5 and later versions support syntax highlighting. Uncommenting the next
+        " line enables syntax highlighting by default.
+        if has("syntax")
+            syntax on
+        endif
+
+        set mouse=a                    " 在任何模式下启用鼠标
+        set t_Co=256                   " 在终端启用256色
+        set backspace=2                " 设置退格键可用
+
+        " Source a global configuration file if available
+        if filereadable("/etc/vim/vimrc.local")
+            source /etc/vim/vimrc.local
+        endif
+    endif
+endif
+
+" }}}
+
+" 4.修改默认设置 " {{{
+
+" <编码配置>
+" -----------------------------------------------------------------------------
+" 不兼容vi模式
+set nocp
+" 注：使用utf-8格式后，软件与程序源码、文件路径不能有中文，否则报错
+set encoding=utf-8                                    "设置gvim内部编码
+set fileencoding=utf-8                                "设置当前文件编码
+set termencoding=utf-8                                "设置终端文件编码
+" 设置支持打开的文件的编码
+set fileencodings=ucs-bom,utf-8,cp936,gb18030,big5,euc-jp,euc-kr,latin1
+setglobal nobomb
+autocmd BufReadPost setlocal nobomb   " vim打开的时候(读完buffer)去bom
+" mb 去掉当前文件utf-8的bom头
+nmap mb :setlocal nobomb<CR>
+
+" 文件格式，默认 ffs=dos,unix
+set fileformat=unix                                   "设置新文件的<EOL>格式
+set fileformats=unix,dos,mac                          "给出文件的<EOL>格式类型
+
+if (g:isWindows && g:isGUI)
+    "解决菜单乱码
+    source $VIMRUNTIME/delmenu.vim
+    source $VIMRUNTIME/menu.vim
+
+    "解决consle输出乱码
+    language messages zh_CN.utf-8
+endif
+
+" 打开regex引擎
+set regexpengine=1
+
+" 高亮文件内容
+syntax enable
+syntax on
+
+" <编写文件时的配置>
+" -----------------------------------------------------------------------------
+set smartindent                  "启用智能对齐方式
+set expandtab                    "将Tab键转换为空格
+set tabstop=4                    "设置Tab键的宽度
+set shiftwidth=4                 "换行时自动缩进4个空格
+set smarttab                     "指定按一次backspace就删除shiftwidth宽度的空格
+set showmatch                    "设置在输入括号时显示配对的括号
+set showcmd                      "在右下角显示一个完整的命令已经完成的部分
+set backspace=indent,eol,start   "设置可以删除行首空格,断行, 进入Insert模式之前的位置
+set foldenable                   "启用折叠
+" set foldmethod=indent            "indent 折叠方式
+set foldmethod=marker            "marker 折叠方式
+set selection=inclusive          "指定在选择文本时， 光标所在位置也属于被选中的范围
+
+" 标签页快捷操作
+nmap <silent> te :tabnew<CR>
+nmap <silent> tn :tabnext<CR>
+nmap <silent> tp :tabprevious<CR>
+nmap <silent> tc :tabclose<CR>
+
+" quickfix 快捷操作
+nmap <silent> mo :copen<CR>
+nmap <silent> mq :cclose<CR>
+
+" 用空格键来开关折叠
+nmap <silent> <space> @=((foldclosed(line('.')) < 0) ? 'zc' : 'zo')<CR>
+
+" 当文件在外部被修改，自动更新该文件
+set autoread
+
+set ignorecase                               "搜索模式里忽略大小写
+" 如果搜索模式包含大写字符，不使用 'ignorecase' 选项，只有在输入搜索模式并且打开 'ignorecase' 选项时才会使用
+set smartcase
+" set noincsearch                              "在输入要搜索的文字时，取消实时匹配
+" 切换标签自动保存文件(会导致关闭的时候不确定自动保存)
+" set autowriteall
+
+" Ctrl + K 插入模式下光标向上移动
+imap <C-k> <Up>
+" Ctrl + J 插入模式下光标向下移动
+imap <C-j> <Down>
+" Ctrl + H 插入模式下光标向左移动
+imap <C-h> <Left>
+" Ctrl + L 插入模式下光标向右移动
+imap <C-l> <Right>
+
+" 启用每行超过80列的字符提示（字体变蓝并加下划线）
+" au BufWinEnter * let w:m2=matchadd('Underlined', '\%>' . 80 . 'v.\+', -1)
+" 启用每行超过80列的字符提示（红色线条）
+set colorcolumn=80
+
+" 根据path来使用gf 与 C-o 跳转
+set path+=**                                  "使路径包含当前目录下的所有子目录
+
+" <界面配置>
+" -----------------------------------------------------------------------------
+set number                              "显示行号
+set laststatus=2                        "启用状态栏信息
+set cmdheight=1                         "设置命令行的高度，默认为1
+set cursorline                          "突出显示当前行
+set cursorcolumn                        "突出显示当前列
+set wrap                                "设置自动换行
+set display=lastline                    "显示出一行剩余的部分
+set lbr                                 "在breakat字符处而不是最后一个字符处断行
+set tw=0 wm=0
+
+" 设置字体:字号（字体名称空格用下划线代替）
+if g:isLinux
+    set guifont=Source_Code_Pro\ 11
+else
+    set guifont=Source_Code_Pro:h11:cDEFAULT
+endif
+
+" 设置隐形字符的显示方式
+set list
+set listchars=tab:>-,trail:-,extends:>,precedes:<
+
+" 设置 gVim 窗口初始位置及大小
+if g:isGUI
+    " au GUIEnter * simalt ~x            "窗口启动时自动最大化
+    winpos 100 10                      "指定窗口出现的位置，坐标原点在屏幕左上角
+    set lines=38 columns=120           "指定窗口大小，lines为高度，columns为宽度
+endif
+
+" 显示/隐藏菜单栏、工具栏、滚动条，可用 Ctrl + F11 切换
+if g:isGUI
+    set guioptions-=m
+    set guioptions-=T
+    set guioptions-=r
+    set guioptions-=L
+    map <silent> <C-F11> :if &guioptions =~# 'm' <Bar>
+                \set guioptions-=m <Bar>
+                \set guioptions-=T <Bar>
+                \set guioptions-=r <Bar>
+                \set guioptions-=L <Bar>
+                \else <Bar>
+                \set guioptions+=m <Bar>
+                \set guioptions+=T <Bar>
+                \set guioptions+=r <Bar>
+                \set guioptions+=L <Bar>
+                \endif<CR>
+endif
+
+" 加宽或缩窄栏页，每次10个单位
+nmap <silent> <Leader>w= :resize +10<CR>
+nmap <silent> <Leader>w- :resize -10<CR>
+nmap <silent> <Leader>w, :vertical resize +10<CR>
+nmap <silent> <Leader>w. :vertical resize -10<CR>
+
+" <常用自动命令配置>
+" -----------------------------------------------------------------------------
+" 自动切换目录为当前编辑文件所在目录
+autocmd BufRead,BufNewFile,BufEnter * cd %:p:h
+
+" 使用 :df 查看更改后的文件与源文件不同之处。
+command! DiffOrig vert new | set bt=nofile | r # | 0d_ | diffthis | wincmd p | diffthis
+nmap <silent> md :DiffOrig<CR>
+
+" <其它配置>
+" -----------------------------------------------------------------------------
+set writebackup                        "保存文件前建立备份，保存成功后删除该备份
+set nobackup                           "设置无备份文件
+" set noswapfile                         "设置无临时文件
+" set vb t_vb=                           "关闭提示音
+
+" F1 帮助快捷键
+nmap <silent> <F1> :help<CR>
+imap <silent> <F1> <ESC>:help<CR>
+vmap <silent> <F1> <ESC>:help<CR>
+
+" 十六进制格式查看
+nmap <silent> c16 :%!xxd<ESC>
+
+" 返回普通格式
+nmap <silent> cr16 :%!xxd -r<ESC>
+
+" 一键去除所有尾部空白
+nmap cS :let _s=@/<Bar>:%s/\s\+$//e<Bar>:let @/=_s<Bar>:nohl<CR>
+
+" 清除行尾 ^M 符号
+nmap cM :%s/\r$//g<CR>:noh<CR>
+
+" 一键替换全部Tab为空格
+function! RemoveTabs()
+    if &shiftwidth == 2
+        execute "%s/	/  /g"
+    elseif &shiftwidth == 4
+        execute "%s/	/    /g"
+    elseif &shiftwidth == 6
+        execute "%s/	/      /g"
+    elseif &shiftwidth == 8
+        execute "%s/	/        /g"
+    else
+        execute "%s/	/ /g"
+    end
+endfunction
+nmap cT :call RemoveTabs()<CR>
+
+" 编辑当前所使用的Vim配置文件
+nmap <silent> me :e $MYVIMRC<CR>
+" 重新载入Vim配置文件
+if g:isLinux
+    nmap <silent> ml :source $HOME/.vimrc<CR>
+else
+    nmap <silent> ml :source $VIM/_vimrc<CR>
+endif
+
+" 进入工作目录
+function! LoadWorkDir()
+    if isdirectory(g:myWorkRootPath)
+        echo g:myWorkRootPath . ' loading OK!'
+    else
+        call mkdir(g:myWorkRootPath, "p")
+        echo g:myWorkRootPath . ' no exists, is create OK!'
+    endif
+
+    execute ':cd ' . g:myWorkRootPath
+endfunction
+nmap <silent> mg :call LoadWorkDir()<CR>
+
+" 针对 *.o,*.exe,*.dll,*.lib,*.so 文本自动执行:%xxd -r
+augroup Binary
+    autocmd!
+    autocmd BufReadPre   *.{o,exe,dll,lib,so,a,dylib,class} let &bin=1
+    autocmd BufReadPost  *.{o,exe,dll,lib,so,a,dylib,class} if &bin | %!xxd
+    autocmd BufReadPost  *.{o,exe,dll,lib,so,a,dylib,class} set ft=xxd | endif
+    autocmd BufWritePre  *.{o,exe,dll,lib,so,a,dylib,class} if &bin | %!xxd -r
+    autocmd BufWritePre  *.{o,exe,dll,lib,so,a,dylib,class} endif
+    autocmd BufWritePost *.{o,exe,dll,lib,so,a,dylib,class} if &bin | %!xxd
+    autocmd BufWritePost *.{o,exe,dll,lib,so,a,dylib,class} set nomod | endif
+augroup END
+
+" 根据后缀名指定文件类型
+autocmd BufRead,BufNewFile *.{h,H,c,C} setlocal ft=c
+autocmd BufRead,BufNewFile *.{h,H,cxx,CXX,cc,CC,cpp,CPP,ipp,IPP,hpp,HPP} setlocal ft=cpp
+autocmd BufRead,BufNewFile *.{java,JAVA} setlocal ft=java
+autocmd BufRead,BufNewFile *.{lua,LUA} setlocal ft=lua
+autocmd BufRead,BufNewFile *.{py,PY} setlocal ft=python
+autocmd BufRead,BufNewFile *.{go,GO} setlocal ft=go
+autocmd BufRead,BufNewFile *.{scala,SCALA} setlocal ft=scala
+autocmd BufRead,BufNewFile *.{gradle,GRADLE} setlocal ft=groovy
+autocmd BufRead,BufNewFile *.{sql,SQL} setlocal ft=mysql
+autocmd BufRead,BufNewFile *.{tpl,TPL} setlocal ft=smarty
+autocmd BufRead,BufNewFile *.{css,CSS,qss,QSS} setlocal ft=css
+autocmd BufRead,BufNewFile *.{m,M} setlocal ft=objc
+autocmd BufRead,BufNewFile *.{mm,MM} setlocal ft=objcpp
+autocmd BufNewFile,BufRead *.{md,MD,mkd,MKD,markdown,MARKDOWN,mdown,MDOWN,mkdn,MKDN,mdwn,MDWN} set ft=mkd
+autocmd BufRead,BufNewFile CmakeLists.*,*.cmake,*.CMAKE setlocal ft=cmake
+autocmd BufRead,BufNewFile *.{pro,PRO,pri,PRI,prf,PRF,prl,PRL} setlocal ft=qmake
+autocmd BufRead,BufNewFile *.{txt,TXT,log,LOG,cnf,CNF,conf,CONF} setlocal ft=txt
+autocmd BufRead,BufNewFile *.{json,JSON,cson,CSON} setlocal ft=json
+
+" }}}
+
+" 5.插件列表 " {{{
+
+" <Vundle插件管理工具配置>
+" -----------------------------------------------------------------------------
+" 安装方法为在终端输入如下命令
+" git clone https://github.com/gmarik/vundle.git ~/.vim/bundle/vundle
+set autochdir                                         "自动切换当前为工作目录
+set nocompatible                                      "禁用 Vi 兼容模式
+filetype off                                          "禁用文件类型侦测
+
+if g:isLinux
+    set rtp+=~/.vim/bundle/vundle/
+    call vundle#rc()
+else
+    set rtp+=$VIM/vimfiles/bundle/vundle/
+    call vundle#rc('$VIM/vimfiles/bundle/')
+endif
+
+" 使用Vundle来管理Vundle，这个必须要有。
+Plugin 'gmarik/vundle'
+
+" 以下为要安装或更新的插件，不同仓库都有（具体书写规范请参考帮助）
+Plugin 'liwangmj/green_vim_switchtoinc'
+Plugin 'vim-scripts/bufexplorer.zip'
+Plugin 'liwangmj/ccvext.vim'
+Plugin 'nathanaelkane/vim-indent-guides'
+Plugin 'liwangmj/Mark--Karkat'
+Plugin 'vim-scripts/Marks-Browser'
+Plugin 'scrooloose/nerdcommenter'
+Plugin 'scrooloose/nerdtree'
+Plugin 'moll/vim-bbye'
+Plugin 'vim-airline/vim-airline-themes'
+Plugin 'bling/vim-airline'
+Plugin 'bling/vim-bufferline'
+Plugin 'tpope/vim-repeat'
+Plugin 'wesleyche/SrcExpl'
+Plugin 'tpope/vim-surround'
+Plugin 'majutsushi/tagbar'
+Plugin 'vim-scripts/taglist.vim'
+Plugin 'vim-scripts/TxtBrowser'
+Plugin 'liwangmj/ZoomWin'
+Plugin 'vim-scripts/winmanager'
+Plugin 'dkprice/vim-easygrep'
+Plugin 'kien/ctrlp.vim'
+Plugin 'mattn/emmet-vim'
+Plugin 'vim-scripts/DoxygenToolkit.vim'
+Plugin 'vim-scripts/sketch.vim'
+Plugin 'mbbill/undotree'
+Plugin 'DataWraith/auto_mkdir'
+Plugin 'tpope/vim-fugitive'
+Plugin 'mhinz/vim-signify'
+Plugin 'tczengming/headerGatesAdd.vim'
+Plugin 'gmarik/github-search.vim'
+Plugin 'vim-scripts/TaskList.vim'
+Plugin 'vim-scripts/matchit.zip'
+Plugin 'Valloric/ListToggle'
+Plugin 'kien/rainbow_parentheses.vim'
+Plugin 'Lokaltog/vim-easymotion'
+Plugin 'godlygeek/tabular'
+Plugin 'vim-scripts/mru.vim'
+Plugin 'jmcantrell/vim-virtualenv'
+Plugin 'vim-scripts/zoom.vim'
+Plugin 'mbbill/fencview'
+Plugin 'liwangmj/valgrind.vim'
+Plugin 'terryma/vim-expand-region'
+Plugin 'terryma/vim-multiple-cursors'
+Plugin 'mhinz/vim-startify'
+Plugin 'severin-lemaignan/vim-minimap'
+Plugin 'plasticboy/vim-markdown'
+Plugin 'suan/vim-instant-markdown'
+Plugin 'vim-scripts/cSyntaxAfter'
+Plugin 'vim-scripts/std_c.zip'
+Plugin 'vim-scripts/cpp.vim--Skvirsky'
+Plugin 'vim-scripts/cpp.vim'
+Plugin 'vim-scripts/vim-cpp-enhanced-highlight'
+Plugin 'vim-scripts/python.vim--Vasiliev'
+Plugin 'davidzchen/msvc.vim'
+Plugin 'vim-scripts/html5.vim'
+Plugin 'vim-scripts/JSON.vim'
+Plugin 'Valloric/MatchTagAlways'
+Plugin 'fremff/vim-css-syntax'
+Plugin 'huyz/less.vim'
+Plugin 'goatslacker/mango.vim'
+Plugin 'vim-scripts/sqlite_c'
+Plugin 'vim-scripts/cmake.vim-syntax'
+Plugin 'vim-scripts/qmake--syntax.vim'
+Plugin 'vim-scripts/qt2vimsyntax'
+Plugin 'peterhoeg/vim-qml'
+Plugin 'nono/jquery.vim'
+Plugin 'Glench/Vim-Jinja2-Syntax'
+Plugin 'tomasr/molokai'
+Plugin 'burnettk/vim-angular'
+Plugin 'pangloss/vim-javascript'
+Plugin 'othree/javascript-libraries-syntax.vim'
+Plugin 'matthewsimo/angular-vim-snippets'
+Plugin 'claco/jasmine.vim'
+Plugin 'johnbradley/vim-fix-xml'
+Plugin 'vim-scripts/jsbeautify'
+Plugin 'maksimr/vim-jsbeautify'
+Plugin 'beautify-web/js-beautify'
+Plugin 'fs111/pydoc.vim'
+Plugin 'vim-scripts/Flake8-vim'
+Plugin 'tpope/vim-ragtag'
+Plugin 'othree/xml.vim'
+Plugin 'liwangmj/auto-pairs'
+Plugin 'ervandew/supertab'
+Plugin 'SirVer/ultisnips'
+Plugin 'liwangmj/ultisnips-snippets'
+Plugin 'honza/vim-snippets'
+Plugin 'vim-scripts/load_template'
+Plugin 'liwangmj/vim-load-templates'
+Plugin 'fatih/vim-go'
+Plugin 'vim-scripts/OmniCppComplete'
+Plugin 'vim-scripts/javacomplete'
+Plugin 'marijnh/tern_for_vim'
+Plugin 'tpope/vim-dispatch'
+Plugin 'xuhdev/SingleCompile'
+Plugin 'derekwyatt/vim-scala'
+
+if g:isLinux
+    Plugin 'scrooloose/syntastic'
+    Plugin 'Valloric/YouCompleteMe'
+else
+    Plugin 'liwangmj/syntastic--Win32'
+    Plugin 'liwangmj/YouCompleteMe--Win32'
+endif
+
+" }}}
+
+" 6.插件详细说明和参数 " {{{
+
+" <vim-switchtoinc 插件配置>
+" -----------------------------------------------------------------------------
+" 用于切换C/C++头文件
+" sfr:源文件相对路径
+" wsr:工作目录相对路径
+" abs:绝对路径
+" reg:正则表达式替换路径
+" A prefix of "reg:" will treat the pathSpec as a regular
+" expression substitution that is applied to the source file
+" path. The format is:
+
+ " reg:<sep><pattern><sep><subst><sep><flag><sep>
+
+" <sep> seperator character, we often use one of [/|%#]
+" <pattern> is what you are looking for
+" <subst> is the output pattern
+" <flag> can be g for global replace or empty
+
+" EXAMPLE: 'reg:/inc/src/g/' will replace every instance
+" of 'inc' with 'src' in the source file path. It is possible
+" to use match variables so you could do something like:
+" 'reg:|src/\([^/]*\)|inc/\1||' (see 'help :substitute',
+" 'help pattern' and 'help sub-replace-special' for more details
+
+" NOTE: a.vim uses ',' (comma) internally so DON'T use it
+" in your regular expressions or other pathSpecs unless you update
+" the rest of the a.vim code to use some other seperator.
+let g:iSearchProjectPath = g:mySearchProjectPath
+let g:iSearchPathName = g:mySearchPathName
+" :A     ---切换头文件并独占整个窗口
+" :AV    ---切换头文件并垂直分割窗口
+" :AS    ---切换头文件并水平分割窗口
+" <Leader>an 切换到下一个相同文件
+" <Leader>as 初始化搜素目录:SearchIncAndSrcPath
+autocmd FileType c,cpp,objc,objcpp nmap <silent> <F4> :wall<CR>:A<CR>
+autocmd FileType c,cpp,objc,objcpp vmap <silent> <F4> <ESC>:wall<CR>:A<CR>
+autocmd FileType c,cpp,objc,objcpp imap <silent> <F4> <ESC>:wall<CR>:A<CR>
+
+autocmd FileType c,cpp,objc,objcpp nmap <silent> <C-F4> :wall<CR>:AV<CR>
+autocmd FileType c,cpp,objc,objcpp vmap <silent> <C-F4> <ESC>:wall<CR>:AV<CR>
+autocmd FileType c,cpp,objc,objcpp imap <silent> <C-F4> <ESC>:wall<CR>:AV<CR>
+
+autocmd FileType c,cpp,objc,objcpp nmap <silent> <S-F4> :wall<CR>:AS<CR>
+autocmd FileType c,cpp,objc,objcpp vmap <silent> <S-F4> <ESC>:wall<CR>:AS<CR>
+autocmd FileType c,cpp,objc,objcpp imap <silent> <S-F4> <ESC>:wall<CR>:AS<CR>
+
+autocmd FileType c,cpp,objc,objcpp nmap <silent> <Leader>an :wall<CR>:AN<CR>
+autocmd FileType c,cpp,objc,objcpp vmap <silent> <Leader>an <ESC>:wall<CR>:AN<CR>
+autocmd FileType c,cpp,objc,objcpp imap <silent> <Leader>an <ESC>:wall<CR>:AN<CR>
+
+autocmd FileType c,cpp,objc,objcpp nmap <silent> <Leader>as :wall<CR>:SearchIncAndSrcPath<CR>
+autocmd FileType c,cpp,objc,objcpp vmap <silent> <Leader>as <ESC>:wall<CR>:SearchIncAndSrcPath<CR>
+autocmd FileType c,cpp,objc,objcpp imap <silent> <Leader>as <ESC>:wall<CR>:SearchIncAndSrcPath<CR>
+
+" <BufExplorer 插件配置>
+" -----------------------------------------------------------------------------
+" 快速轻松的在缓存中切换（相当于另一种多个文件间的切换方式）
+" <Leader>be 在当前窗口显示缓存列表并打开选定文件
+" <Leader>bs 水平分割窗口显示缓存列表，并在缓存列表窗口中打开选定文件
+" <Leader>bv 垂直分割窗口显示缓存列表，并在缓存列表窗口中打开选定文件
+
+" <ccvext.vim 插件配置>
+" -----------------------------------------------------------------------------
+" 用于对指定文件自动生成tags与cscope文件并连接
+" 如果是Windows系统, 则生成的文件在源文件所在盘符根目录的.symbs目录下(如: X:\.symbs\)
+" 如果是Linux系统, 则生成的文件在~/.symbs/目录下
+" 具体用法可参考www.vim.org中此插件的说明
+" <Leader>sy 自动生成tags与cscope文件并连接
+" <Leader>sc 连接已存在的tags与cscope文件
+
+" <vim-indent-guides 插件配置>
+" -----------------------------------------------------------------------------
+" 用于显示对齐线
+let g:indent_guides_enable_on_vim_startup = 1
+let g:indent_guides_guide_size = 1
+" 支持自定义颜色，默认自动适配颜色
+" let g:indent_guides_auto_colors = 0
+" autocmd VimEnter,Colorscheme * :hi IndentGuidesOdd  guibg=red   ctermbg=3
+" autocmd VimEnter,Colorscheme * :hi IndentGuidesEven guibg=green ctermbg=4
+" 如果是终端
+hi IndentGuidesOdd  ctermbg=black
+hi IndentGuidesEven ctermbg=darkgrey
+
+" <Mark--Karkat（也就是 Mark） 插件配置>
+" -----------------------------------------------------------------------------
+" 给不同的单词高亮，表明不同的变量时很有用，详细帮助见 :h mark.txt
+" <Leader>m          标记光标
+" <Leader>n          清除标记
+" {Visual}<Leader>m  标记或取消标记视觉选择
+" <Leader>r          手动输入一个正则表达式来标记
+" {Visual}<Leader>r  基于视觉的选择
+" :MarkClear         清楚所有标记
+" :MarkLoad          从以前的 Vim 会话还原标记
+" :MarkSave          保存当前已定义的标记
+
+" <Marks-Browser 插件配置>
+" -----------------------------------------------------------------------------
+" 浏览Mark标记的窗口插件
+nmap <silent> <Leader>bk :MarksBrowser<CR>
+imap <silent> <Leader>bk <ESC>:MarksBrowser<CR>
+vmap <silent> <Leader>bk <ESC>:MarksBrowser<CR>
+
+" 在不使用 MiniBufExplorer 插件时也可用<C-k,j,h,l>切换到上下左右的窗口中去
+map <C-k> <C-w>k
+map <C-j> <C-w>j
+map <C-h> <C-w>h
+map <C-l> <C-w>l
+
+" <nerdcommenter 插件配置>
+" -----------------------------------------------------------------------------
+" 我主要用于C/C++代码注释(其它的也行)
+" 以下为插件默认快捷键，其中的说明是以C/C++为例的，其它语言类似
+" <Leader>ci 以每行一个 /* */ 注释选中行(选中区域所在行)，再输入则取消注释
+" <Leader>cm 以一个 /* */ 注释选中行(选中区域所在行)，再输入则称重复注释
+" <Leader>cc 以每行一个 /* */ 注释选中行或区域，再输入则称重复注释
+" <Leader>cu 取消选中区域(行)的注释，选中区域(行)内至少有一个 /* */
+" <Leader>ca 在/*...*/与//这两种注释方式中切换（其它语言可能不一样了）
+" <Leader>cA 行尾注释
+let NERDSpaceDelims = 1                   "在左注释符之后，右注释符之前留有空格
+
+" <nerdtree 插件配置>
+" -----------------------------------------------------------------------------
+" 有目录村结构的文件浏览插件
+" 常规模式下输入 tt 调用插件
+nmap <silent> tt :NERDTreeToggle<CR>
+
+let NERDTreeHighlightCursorline = 1
+" let NERDTreeQuitOnOpen = 1
+let NERDTreeIgnore=[ '\.pyc$', '\.pyo$', '\.obj$', '\.o$', '\.so$', '\.egg$', '^\.git$', '^\.svn$', '^\.hg$' ]
+"close vim if the only window left open is a NERDTree
+" autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTreeType") && b:NERDTreeType == "primary") | q | end
+
+" 显示隐藏文件
+let NERDTreeShowHidden = 1
+" Bookmark <bookmarkname> 光标移到文件目录上执行这个命令可以增加书签
+" 尖括号（包含尖括号），自己替换为你想要给书签起的名字，一般为工程名
+" 打开书签功能
+let NERDTreeShowBookmarks = 1
+" F2 同时启用taglist和nerdtree插件
+nmap <silent> <F2> :NERDTreeToggle<CR>:Tlist<CR>
+imap <silent> <F2> <ESC>:NERDTreeToggle<CR>:Tlist<CR>
+vmap <silent> <F2> <ESC>:NERDTreeToggle<CR>:Tlist<CR>
+
+" <vim-bbye 插件设置>
+" -----------------------------------------------------------------------------
+nmap <silent> mc :Bdelete<CR>
+
+" <vim-airline-themes 插件设置>
+" -----------------------------------------------------------------------------
+
+" <vim-airline 插件配置>
+" -----------------------------------------------------------------------------
+" 状态栏插件，更好的状态栏效果
+" 打开tab页面
+" let g:airline_powerline_fonts = 1
+let g:airline#extensions#tabline#formatter = 'unique_tail'
+let g:airline#extensions#tabline#buffer_nr_show = 1
+let g:airline#extensions#tabline#enabled = 1
+let g:airline#extensions#tabline#left_sep = '>'
+let g:airline#extensions#tabline#left_alt_sep = '┊'
+" 设置左边两个和右边一个状态区的显示
+let g:airline_section_a = airline#section#create(['mode',' ','%{fugitive#statusline()}',' ','hunks'])
+let g:airline_section_b = airline#section#create_left(['%{getcwd()}'])
+let g:airline_section_z = airline#section#create_right(['%P','%l','%c', '%{strftime("%X")}'])
+let g:airline_theme = 'badwolf'  " 设置主题
+
+" <vim-bufferline 插件配置>
+" -----------------------------------------------------------------------------
+" 缓存列表显示栏插件
+" mp 跳到上一个缓存
+" mn 跳到下一个缓存
+" mc 关闭当前缓存
+nmap <silent> mp :bprev<CR>
+nmap <silent> mn :bnext<CR>
+
+" <repeat 插件配置>
+" -----------------------------------------------------------------------------
+" 主要用"."命令来重复上次插件使用的命令
+
+" <SrcExpl 插件配置>
+" -----------------------------------------------------------------------------
+" 增强源代码浏览，其功能就像Windows中的"Source Insight"
+nmap <silent> <F3> :SrcExplToggle<CR>                " 打开/闭浏览窗口
+imap <silent> <F3> <ESC>:SrcExplToggle<CR>                " 打开/闭浏览窗口
+vmap <silent> <F3> <ESC>:SrcExplToggle<CR>                " 打开/闭浏览窗口
+
+" <surround 插件配置>
+" -----------------------------------------------------------------------------
+" 快速给单词/句子两边增加符号（包括html标签），缺点是不能用"."来重复命令
+" 不过 repeat 插件可以解决这个问题
+" ysiw"     将光标处文本用" "包起来
+" ysiw<em>  将光标处文本用<em></em>标签包起来
+" yss"      将光标所在行用" "包起来
+" 用法：先"ysiw"或则"yss",然后<ESC>,然后"." + "所需的符号" 组合使用即可
+nmap <silent> <Leader>' ysiw'
+nmap <silent> <Leader>" ysiw"
+nmap <silent> <Leader>em ysiw<em>
+vmap <silent> <Leader>' <ESC>ysiw'
+vmap <silent> <Leader>' <ESC>ysiw'
+vmap <silent> <Leader>" <ESC>ysiw"
+imap <silent> <Leader>em <ESC>ysiw<em>
+imap <silent> <Leader>" <ESC>ysiw"
+imap <silent> <Leader>em <ESC>ysiw<em>
+
+" <Tagbar 插件配置>
+" -----------------------------------------------------------------------------
+" 相对 TagList 能更好的支持面向对象
+" 常规模式下输入 tb 调用插件
+nmap <silent> tb :TagbarToggle<CR>
+let g:tagbar_autofocus = 1
+let g:tagbar_width = 30                       "设置窗口宽度
+" let g:tagbar_left = 1                         "在左侧窗口中显示
+" 去 tagbar 列表功能和 gofiles 中的变量
+let g:tagbar_type_go = {
+            \'ctagstype' : 'go',
+            \'kinds'     : [
+                \'p:package',
+                \'i:imports:1',
+                \'c:constants',
+                \'v:variables',
+                \'t:types',
+                \'n:interfaces',
+                \'w:fields',
+                \'e:embedded',
+                \'m:methods',
+                \'r:constructor',
+                \'f:functions'
+            \],
+            \'sro' : '.',
+            \'kind2scope' : {
+                \'t' : 'ctype',
+                \'n' : 'ntype'
+            \},
+            \'scope2kind' : {
+                \'ctype' : 't',
+                \'ntype' : 'n'
+            \},
+            \'ctagsbin'  : 'gotags',
+            \'ctagsargs' : '-sort -silent'
+\}
+
+" <TagList 插件配置>
+" -----------------------------------------------------------------------------
+" 高效地浏览源码, 其功能就像vc中的workpace
+" 那里面列出了当前文件中的所有宏,全局变量, 函数名等
+" 常规模式下输入 tl 调用插件
+nmap <silent> tl :Tlist<CR>
+" 常规 模式下输入 tu 更新显示
+nmap tu :TlistUpdate<CR>
+let Tlist_Show_One_File = 1             "只显示当前文件的tags
+" let Tlist_Enable_Fold_Column=0          "使taglist插件不显示左边的折叠行
+let Tlist_Exit_OnlyWindow = 1           "如果Taglist窗口是最后一个窗口则退出Vim
+let Tlist_File_Fold_Auto_Close = 1      "自动折叠
+let Tlist_WinWidth = 30                 "设置窗口宽度
+let Tlist_Use_Right_Window = 1          "在右侧窗口中显示
+
+" <txtbrowser 插件配置>
+" -----------------------------------------------------------------------------
+" 用于文本文件生成标签与与语法高亮（调用TagList插件生成标签，如果可以）
+" <Leader>s: 在google中搜索光标处文本
+" <Leader>f: 在www.dict.cn中搜索光标处文本
+" <Leader>g: 如果光标处文本为url，则直接在浏览器打开
+" <Leader>h: 高亮选中的文本
+" 定义文本标题级别，默认3级，最高4级
+let TxtBrowser_Title_Level = 3
+" 设置默认的词典为dict.cn
+let TxtBrowser_Dict_Url = g:browserDictUrl
+" 设置默认的搜索引擎为baidu.com
+if g:isBaidu
+    let Txtbrowser_Search_Engine = 'http://www.baidu.com/s?wd=text&oq=text&f=3&rsp=2'
+endif
+
+" <ZoomWin 插件配置>
+" -----------------------------------------------------------------------------
+" 用于分割窗口的最大化与还原
+" 常规模式下按快捷键 <c-w>o 在最大化与还原间切换
+
+" <winmanager 插件配置>
+" -----------------------------------------------------------------------------
+" 窗口管理插件
+" 常规模式下输入 wm 调用插件
+let g:winManagerWidth = 30
+let g:defaultExplorer = 0
+" 以下是兼容最好的组合
+let g:winManagerWindowLayout = 'FileExplorer|TagList,BufExplorer'
+nmap <silent> mw :WMToggle<CR>
+" " 以下是NERDTree和winmanager结合使用，但有BUG
+" let g:NERDTree_title="[NERD Tree]"
+" let g:winManagerWindowLayout='NERDTree|TagList,BufExplorer'
+" function! NERDTree_Start()
+    " exec 'NERDTree'
+" endfunction
+" function! NERDTree_IsValid()
+    " return 1
+" endfunction
+" nmap mw :if IsWinManagerVisible() <BAR> WMToggle<CR> <BAR> else <BAR> WMToggle<CR>:q<CR> endif <CR><CR>
+
+" <vim-easygrep 插件配置>
+" -----------------------------------------------------------------------------
+" 用于字符串检索文件
+" <Leader>vv 检索光标停留处字符
+" <Leader>vr 检索光标停留处字符并替换
+" <Leader>vo easygrep设置菜单
+" <Leader>vV  - Grep for the word under the cursor, match whole word, like |star|
+" <Leader>va  - Like vv, but add to existing list
+" <Leader>vA  - Like vV, but add to existing list
+
+" <ctrlp 插件配置>
+" -----------------------------------------------------------------------------
+" 用于Ctrl+P 搜索文件
+let g:ctrlp_custom_ignore = {
+    \ 'dir':  '\v[\/](node_modules|target|dist)|\.(git|hg|svn|rvm)$',
+    \ 'file': '\v\.(exe|so|dll|zip|tar|tar.gz)$',
+    \ }
+let g:ctrlp_follow_symlinks = 1
+
+" <emmet 插件配置>
+" -----------------------------------------------------------------------------
+" 用于简化前端开发的快捷输入插件
+" 只对html，css启用插件
+let g:user_emmet_install_global = 0
+autocmd FileType htm,html,xhtml,css EmmetInstall
+" 更改使用范围 'a'是所有范围 'n'是一般模式
+let g:user_emmet_mode = 'a'
+" let g:user_emmet_leader_key='<C-Z>'   " 重新定义触发器
+
+" <DoxygenToolkit 插件配置>
+" -----------------------------------------------------------------------------
+" 自动生成注释块插件
+" :DoxLic             生成授权说明
+" :DoxAuthor          生成作者信息
+" :Dox                生成函数或者类声明
+" :DoxBlock           在后面的行中插入一个doxygen块
+" :DoxUndoc(DEBUG)!   用于忽略代码块
+" 如：#ifdef DEBUG ... #endif
+nmap <silent> <Leader>dx :Dox<CR>
+nmap <silent> <Leader>da :DoxAuthor<CR>
+nmap <silent> <Leader>dl :DoxLic<CR>
+nmap <silent> <Leader>db :DoxBlock<CR>
+imap <silent> <Leader>dx <ESC>:Dox<CR>
+imap <silent> <Leader>da <ESC>:DoxAuthor<CR>
+imap <silent> <Leader>dl <ESC>:DoxLic<CR>
+imap <silent> <Leader>db <ESC>:DoxBlock<CR>
+vmap <silent> <Leader>dx <ESC>:Dox<CR>
+vmap <silent> <Leader>da <ESC>:DoxAuthor<CR>
+vmap <silent> <Leader>dl <ESC>:DoxLic<CR>
+vmap <silent> <Leader>db <ESC>:DoxBlock<CR>
+" let g:DoxygenToolkit_briefTag_pre = '@Synopsis '
+" let g:DoxygenToolkit_paramTag_pre = '@Param '
+" let g:DoxygenToolkit_returnTag = '@Returns '
+" let g:DoxygenToolkit_blockHeader = '---------------------------------------------'
+" let g:DoxygenToolkit_blockFooter = '---------------------------------------------'
+" let g:DoxygenToolkit_commentType = 'C++'
+let g:DoxygenToolkit_compactDoc = 'yes'
+let g:DoxygenToolkit_authorName = g:myAuthorInfo
+let g:DoxygenToolkit_licenseTag = "Copyright (C) " . strftime("%Y") . " " . g:myOrganizationName . "\<enter>\<enter>"
+let g:DoxygenToolkit_licenseTag = g:DoxygenToolkit_licenseTag . "This program is free software; you can redistribute it and/or\<enter>"
+let g:DoxygenToolkit_licenseTag = g:DoxygenToolkit_licenseTag . "modify it under the terms of the " . g:myLicenseName . "\<enter>"
+let g:DoxygenToolkit_licenseTag = g:DoxygenToolkit_licenseTag . "as published by the Free Software Foundation; either current version\<enter>"
+let g:DoxygenToolkit_licenseTag = g:DoxygenToolkit_licenseTag . "of the License, or (at your option) any later version.\<enter>\<enter>"
+let g:DoxygenToolkit_licenseTag = g:DoxygenToolkit_licenseTag . "This program is distributed in the hope that it will be useful,\<enter>"
+let g:DoxygenToolkit_licenseTag = g:DoxygenToolkit_licenseTag . "but WITHOUT ANY WARRANTY; without even the implied warranty of\<enter>"
+let g:DoxygenToolkit_licenseTag = g:DoxygenToolkit_licenseTag . "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\<enter>"
+let g:DoxygenToolkit_licenseTag = g:DoxygenToolkit_licenseTag . g:myLicenseName . " for more details.\<enter>\<enter>"
+let g:DoxygenToolkit_licenseTag = g:DoxygenToolkit_licenseTag . "You should have received a copy of the " . g:myLicenseName . "\<enter>"
+let g:DoxygenToolkit_licenseTag = g:DoxygenToolkit_licenseTag . "along with this program; if not, write to the Free Software\<enter>"
+let g:DoxygenToolkit_licenseTag = g:DoxygenToolkit_licenseTag . "Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.\<enter>"
+
+" <sketch 插件配置>
+" -----------------------------------------------------------------------------
+" 鼠标画图插件
+nmap <silent> <Leader>ske :call ToggleSketch()<CR>
+imap <silent> <Leader>ske <ESC>:call ToggleSketch()<CR>
+vmap <silent> <Leader>ske <ESC>:call ToggleSketch()<CR>
+
+" <undotree 插件配置>
+" -----------------------------------------------------------------------------
+" 可视化 Vim 的撤销列表插件
+" <Leader>ut 打开列表，等同:GundoToggle
+nmap <silent> <Leader>ut :UndotreeToggle<CR>
+imap <silent> <Leader>ut <ESC>:UndotreeToggle<CR>
+vmap <silent> <Leader>ut <ESC>:UndotreeToggle<CR>
+
+" <auto_mkdir 插件配置>
+" -----------------------------------------------------------------------------
+" 自动创建文件夹插件
+
+" <fugitive 插件配置>
+" -----------------------------------------------------------------------------
+" git绑定插件
+" :Git
+" :Gwrite
+" :Gread
+" :Gremove
+" :Gmove
+" :Gcommit
+" :Gblame
+
+" <vim-signify 插件配置>
+" -----------------------------------------------------------------------------
+" 版本控制实时显示更改插件
+
+" <headerGatesAdd 插件配置>
+" -----------------------------------------------------------------------------
+" 头文件防重复插件
+
+" <github-search 插件配置>
+" -----------------------------------------------------------------------------
+" 搜索github资源的插件
+" :GHSearchRepo <REPO NAME> 然后选中仓库按C检出
+let g:github_search_path_format = g:myWorkRootPath . '/github.com/:project'
+
+" <TaskList 插件配置>
+" -----------------------------------------------------------------------------
+" 任务列表插件
+nmap <silent> <Leader>vt <Plug>TaskList
+imap <silent> <Leader>vt <ESC><Plug>TaskList
+vmap <silent> <Leader>vt <ESC><Plug>TaskList
+
+" <ShowTrailingWhitespace 插件配置>
+" -----------------------------------------------------------------------------
+" 显示无用的空白为红色的插件
+
+" <matchit 插件配置>
+" -----------------------------------------------------------------------------
+" 匹配跳转插件
+" % 匹配成对的标签，跳转
+
+" <ListToggle 插件配置>
+" -----------------------------------------------------------------------------
+" 切换 quickfix 列表和位置列表显示的插件
+" <Leader>l 切换到locationlist
+" <Leader>q 切换到quickfix
+let g:lt_height = 10    " 设置list高度
+
+" <rainbow_parentheses 插件配置>
+" -----------------------------------------------------------------------------
+" 多重色彩括号插件
+" :RainbowParenthesesToggle       " 切换它的开/关
+" :RainbowParenthesesLoadRound    " (), 切换时的默认行为
+" :RainbowParenthesesLoadSquare   " []
+" :RainbowParenthesesLoadBraces   " {}
+" :RainbowParenthesesLoadChevrons " <>
+let g:rbpt_colorpairs = [
+            \['brown',       'RoyalBlue3'],
+            \['Darkblue',    'SeaGreen3'],
+            \['darkgray',    'DarkOrchid3'],
+            \['darkgreen',   'firebrick3'],
+            \['darkcyan',    'RoyalBlue3'],
+            \['darkred',     'SeaGreen3'],
+            \['darkmagenta', 'DarkOrchid3'],
+            \['brown',       'firebrick3'],
+            \['gray',        'RoyalBlue3'],
+            \['black',       'SeaGreen3'],
+            \['darkmagenta', 'DarkOrchid3'],
+            \['Darkblue',    'firebrick3'],
+            \['darkgreen',   'RoyalBlue3'],
+            \['darkcyan',    'SeaGreen3'],
+            \['darkred',     'DarkOrchid3'],
+            \['red',         'firebrick3'],
+\]
+let g:rbpt_max = 16
+let g:rbpt_loadcmd_toggle = 0
+autocmd VimEnter * RainbowParenthesesToggle
+autocmd Syntax * RainbowParenthesesLoadRound
+autocmd Syntax * RainbowParenthesesLoadSquare
+autocmd Syntax * RainbowParenthesesLoadBraces
+
+" <EasyMotion  插件配置>
+" -----------------------------------------------------------------------------
+" 更快的定位移动插件
+" <Leader><Leader>w <Target key> 光标向下定位所有单词首字母
+" <Leader><Leader>e  <Target key> 光标向下定位所有单词尾字母
+" <Leader><Leader>b <Search character> 光标向上定位所有单词首字母
+" <Leader><Leader>gE <Target key> 光标向上定位所有单词字母末尾
+" <Leader><Leader>f <Search character><Target key> 光标向下定位所有要查找的字符
+
+" <Tabular  插件配置>
+" -----------------------------------------------------------------------------
+" 按指定字符文本对齐插件
+" 如我想让其中的两行按等号对齐，则将光标定位到有等号的那行，执行 :Tab /= 即可
+
+" <mru  插件配置>
+" -----------------------------------------------------------------------------
+" 最近打开过的文件列表插件
+" ENTER 打开历史文件列表
+nmap <silent> <CR> :MRU<CR>
+
+" <vim-virtualenv  插件配置>
+" -----------------------------------------------------------------------------
+" virtualenv虚拟python环境插件
+" :VirtualEnvDeactivate        停用当前virtualenv
+" :VirtualEnvList              列出所有virtualenv
+" :VirtualEnvActivate spam     激活 'spam' virtualenv
+" :VirtualEnvActivate <tab>    选择激活某个virtualenv
+
+" <zoom.vim  插件配置>
+" -----------------------------------------------------------------------------
+" 放大缩小字体的插件
+nmap <silent> <A-=> :ZoomIn<CR>
+nmap <silent> <A--> :ZoomOut<CR>
+
+" <fencview插件配置>
+" -----------------------------------------------------------------------------
+" 用于更改文件编码的插件
+let g:fencview_autodetect = 1   " 打开文件时自动识别编码
+let g:fencview_checklines = 10 " 检查前后10行来判断编码
+nmap <silent> <F12> :wall<CR>:FencView<CR>
+imap <silent> <F12> <ESC>:wall<CR>:FencView<CR>
+vmap <silent> <F12> <ESC>:wall<CR>:FencView<CR>
+
+" <valgrind 插件配置>
+" -----------------------------------------------------------------------------
+" 用于检测内存错误的插件
+" :Valgrind + 程序名
+let g:dont_export_hotkeys = 1
+let g:valgrind_arguments = '--leak-check=yes --num-callers=5000'
+
+" <vim-expand-region 插件配置>
+" -----------------------------------------------------------------------------
+" 扩展选择内容的插件
+" 普通模式或可视模式下使用 + 来进行选择
+
+" <vim-multiple-cursors 插件配置>
+" -----------------------------------------------------------------------------
+" 多光标操作插件
+" C-n 连续按可选中相同的字符，s 来替换
+" Default mapping
+let g:multi_cursor_use_default_mapping = 0
+let g:multi_cursor_next_key = '<C-n>'
+let g:multi_cursor_prev_key = '<C-p>'
+let g:multi_cursor_skip_key = '<C-x>'
+let g:multi_cursor_quit_key = '<ESC>'
+let g:multi_cursor_start_key = '='
+
+" <vim-markdown 插件配置>
+" -----------------------------------------------------------------------------
+" markdown插件
+" 禁止markdown自动折叠
+let g:vim_markdown_folding_disabled=1
+
+" <vim-instant-markdown 插件设置>
+" -----------------------------------------------------------------------------
+" vim-instant-markdown插件
+" If you're on Linux, the xdg-utils package needs to be installed
+" (is installed by default on Ubuntu).
+" Copy the after/ftplugin/markdown/instant-markdown.vim file from this repo
+" into your ~/.vim/after/ftplugin/markdown/ (creating directories as necessary),
+" or follow your vim package manager's instructions. 
+" By default, vim-instant-markdown will update the display in realtime. If that taxes your system too much, you can specify
+" let g:instant_markdown_slow = 1
+"
+" By default, vim-instant-markdown will automatically launch the preview window when you open a markdown file. If you want to manually control this behavior, you can specify
+" let g:instant_markdown_autostart = 0
+
+" <vim-minimap 插件配置>
+" -----------------------------------------------------------------------------
+" minimap
+let g:minimap_highlight='Visual'
+map <Leader>mm :Minimap<CR>
+map <Leader>cm :MinimapClose<CR>
+
+" <vim-startifyvim 插件配置>
+" -----------------------------------------------------------------------------
+" vim-startifyvim 插件
+" :Startify
+" :SLoad    load a session
+" :SSave    save a session
+" :SDelete  delete a session 
+
+" <cSyntaxAfter 插件配置>
+" -----------------------------------------------------------------------------
+" 高亮括号与运算符等
+autocmd! BufRead,BufNewFile,BufEnter *.{c,cpp,h,python,javascript,java} call CSyntaxAfter()
+
+" <std_c 插件配置>
+" -----------------------------------------------------------------------------
+" 用于增强C语法高亮
+" 启用 // 注视风格
+let c_cpp_comments = 0
+
+" <cpp.vim--Skvirsky 插件配置>
+" -----------------------------------------------------------------------------
+" 用于增强C++语法高亮
+
+" <cpp.vim 插件配置>
+" -----------------------------------------------------------------------------
+" 用于增强C++语法高亮
+
+" <vim-cpp-enhanced-highlight 插件配置>
+" -----------------------------------------------------------------------------
+" 用于增强C++语法高亮
+
+" <python.vim--Vasiliev 插件配置>
+" -----------------------------------------------------------------------------
+" 用于增强python语法高亮
+
+" <msvc 插件配置>
+" -----------------------------------------------------------------------------
+" 用于增强msvc语法高亮
+
+" <html5.vim 插件配置>
+" -----------------------------------------------------------------------------
+" 用于增强html5语法高亮
+
+" <JSON.vim 插件配置>
+" -----------------------------------------------------------------------------
+" 用于增强JSON语法高亮
+
+" <MatchTagAlways 插件配置>
+" -----------------------------------------------------------------------------
+" 用于增强html,xml语法高亮
+
+" <vim-css-syntax 插件配置>
+" -----------------------------------------------------------------------------
+" 用于增强css,css3语法高亮
+
+" <less.vim 插件配置>
+" -----------------------------------------------------------------------------
+" 用于增强less语法高亮
+
+" <mango.vim 插件配置>
+" -----------------------------------------------------------------------------
+" 用于增强javacript,coffee语法高亮
+
+" <sqlite_c.vim 插件配置>
+" -----------------------------------------------------------------------------
+" 用于增强sqlite c/c++ 接口语法高亮
+
+" <cmake.vim-syntax 插件配置>
+" -----------------------------------------------------------------------------
+" 用于增强cmake语法高亮
+
+" <qmake--syntax.vim 插件配置>
+" -----------------------------------------------------------------------------
+" 用于增强qmake语法高亮
+
+" <qt2vimsyntax 插件配置>
+" -----------------------------------------------------------------------------
+" 用于增强qt语法高亮
+
+" <vim-qml 插件配置>
+" -----------------------------------------------------------------------------
+" 用于增强qml语法高亮
+
+" <jquery.vim 插件配置>
+" -----------------------------------------------------------------------------
+" 用于增强jquery语法高亮
+
+" <Vim-Jinja2-Syntax 插件配置>
+" -----------------------------------------------------------------------------
+" 用于增强jinja2语法高亮
+
+" <molokai 插件配置>
+" -----------------------------------------------------------------------------
+"  仿sublime主题插件
+if g:isGUI
+    colorscheme molokai
+else
+    " 设置终端主题为默认
+endif
+
+" <Syntastic 插件配置>
+" -----------------------------------------------------------------------------
+" 用于保存文件时查检语法
+let g:syntasti_ignore_files = [".*\.py$"]
+" let g:syntastic_check_on_open = 1  " 打开文件时检测
+" let g:syntastic_auto_jump = 1  " 自动跳转到错误行的来源
+let g:syntastic_error_symbol = '>>'
+let g:syntastic_warning_symbol = '>'
+let g:syntastic_style_error_symbol='~~'
+let g:syntastic_style_warning_symbol='~'
+let g:syntastic_auto_loc_list = 1  " 自动弹出错误列表
+let g:syntastic_loc_list_height = 1  " 错误列表高度
+" let g:syntastic_enable_highlighting = 0  " 关闭错误高亮
+let g:syntastic_python_checkers = ['flake8']
+" let g:syntastic_python_checkers = ['pylint']
+let g:syntastic_javascript_checkers = ['jshint']
+let g:syntastic_enable_balloons = 1  " 打开错误气泡
+let g:syntastic_cpp_compiler = 'clang++'
+let g:syntastic_cpp_compiler_options = '-std=c++11 -stdlib=libstdc++'
+let g:syntastic_always_populate_loc_list = 1
+let g:syntastic_html_tidy_ignore_errors = ['proprietary attribute "myhotcompany-']
+let g:syntastic_html_tidy_blocklevel_tags = ['myCustomTag']
+
+" <vim-angular 插件配置>
+" -----------------------------------------------------------------------------
+" AngularJS 代码插件
+let g:angular_source_directory = 'app/source'
+let g:angular_test_directory = 'test/units'
+let g:angular_find_ignore = ['build/', 'dist/']
+" let g:angular_filename_convention = 'camelcased'
+let g:angular_filename_convention = 'titlecased'
+
+" <vim-javascript 插件配置>
+" -----------------------------------------------------------------------------
+" javascript 缩进和语法支持
+let g:javascript_conceal_function   = "ƒ"
+let g:javascript_conceal_null       = "ø"
+let g:javascript_conceal_this       = "@"
+let g:javascript_conceal_return     = "⇚"
+let g:javascript_conceal_undefined  = "¿"
+let g:javascript_conceal_NaN        = "ℕ"
+let g:javascript_conceal_prototype  = "¶"
+let g:javascript_conceal_static     = "•"
+let g:javascript_conceal_super      = "Ω"
+
+" <javascript-libraries-syntax.vim 插件配置>
+" -----------------------------------------------------------------------------
+" javascript 类库的语法支持
+autocmd BufReadPre *.js let b:javascript_lib_use_jquery = 1
+autocmd BufReadPre *.js let b:javascript_lib_use_underscore = 1
+autocmd BufReadPre *.js let b:javascript_lib_use_backbone = 1
+autocmd BufReadPre *.js let b:javascript_lib_use_prelude = 1
+autocmd BufReadPre *.js let b:javascript_lib_use_angularjs = 1
+" jQuery: jquery
+" underscore.js: underscore
+" Lo-Dash: underscore
+" Backbone.js: backbone
+" prelude.ls: prelude
+" AngularJS: angularjs
+" AngularUI: angularui
+" React: react
+" Flux: flux
+" RequireJS: requirejs
+" Sugar.js: sugar
+" Jasmine: jasmine
+" Chai: chai
+" Handlebars: handlebars
+let g:used_javascript_libs = 'jquery,angularjs'
+
+" <angular-vim-snippets 插件配置>
+" -----------------------------------------------------------------------------
+" angular 代码片段
+
+" <jasmine.vim 插件配置>
+" -----------------------------------------------------------------------------
+" javascript 代码测试插件
+
+" <vim-fix-xml 插件配置>
+" -----------------------------------------------------------------------------
+" xml 代码检测插件
+
+" <vim-jsbeautify 插件配置>
+" -----------------------------------------------------------------------------
+" js，css，html反压缩插件
+" <Leader>jb 反解压当前文件
+map <Leader>jb :call JsBeautify()<CR>
+" or
+autocmd FileType javascript nmap <buffer> <Leader>jb :call JsBeautify()<CR>
+" for html
+autocmd FileType html nmap <buffer> <Leader>hb :call HtmlBeautify()<CR>
+" for css or scss
+autocmd FileType css nmap <buffer> <Leader>cb :call CSSBeautify()<CR>
+autocmd FileType javascript vmap <buffer>  <Leader>jb :call RangeJsBeautify()<CR>
+autocmd FileType html vmap <buffer> <Leader>hb :call RangeHtmlBeautify()<CR>
+autocmd FileType css vmap <buffer> <Leader>cb :call RangeCSSBeautify()<CR>
+
+" <pydoc 插件配置>
+" -----------------------------------------------------------------------------
+" 显示 python 模块或者类的文档的插件
+" :Pydoc re.compile
+" :PydocSearch foobar  -- $: pydoc -k foobar
+" 查询到结果后,显示个split a new buffer
+" 当光标在某个词上时,按下：
+" <Leader>pw
+" <Leader>pW
+
+" <pep8 插件配置>
+" -----------------------------------------------------------------------------
+" python的pep8格式检查插件
+
+" <ragtag 插件配置>
+" -----------------------------------------------------------------------------
+" html代码自动换行插件
+
+" <xml 插件配置>
+" -----------------------------------------------------------------------------
+" 用于html/xhtml/xml标签自动补全
+
+" <auto-pairs 插件配置>
+" -----------------------------------------------------------------------------
+" 用于括号与引号自动补全
+
+" <supertab 插件配置>
+" -----------------------------------------------------------------------------
+" tab键加强
+" " To be compatible with neocomplcache
+" let g:SuperTabDefaultCompletionType = '<C-X><C-U>'
+" To be compatible with YouCompleteMe
+let g:SuperTabDefaultCompletionType = '<Leader><C-TAB>'
+
+" <UltiSnips 插件配置>
+" -----------------------------------------------------------------------------
+" 快速插入代码片段
+let g:UltiSnipsExpandTrigger = '<TAB>'
+let g:UltiSnipsJumpForwardTrigger = '<TAB>'
+let g:UltiSnipsJumpBackwardTrigger = '<S-TAB>'
+
+" 指定sinp路径
+if g:isWindows
+    let g:UltiSnipsSnippetsDir = $VIM .'/vimfiles/bundle/ultisnips-snippets'
+    let g:UltiSnipsSnippetDirectories = [
+                \'bundle/ultisnips-snippets',
+                \'bundle/angular-vim-snippets/UltiSnips',
+                \'bundle/vim-snippets/UltiSnips']
+else
+    let g:UltiSnipsSnippetsDir = $HOME . '/.vim/bundle/ultisnips-snippets'
+    let g:UltiSnipsSnippetDirectories = [
+                \'bundle/ultisnips-snippets',
+                \'bundle/angular-vim-snippets/UltiSnips',
+                \'bundle/vim-snippets/UltiSnips']
+endif
+
+" <load_template 插件配置>
+" -----------------------------------------------------------------------------
+" 代码模版插件
+" :LoadTemplate 根据文件后缀自动加载模板
+if g:isWindows
+    let g:template_path = $VIM .'/vimfiles/bundle/vim-load-templates'
+else
+    let g:template_path = $HOME . '/.vim/bundle/vim-load-templates'
+endif
+
+" <vim-load-template 插件配置>
+" -----------------------------------------------------------------------------
+" 模版集合插件
+
+" <ultisnips-snippets 插件配置>
+" -----------------------------------------------------------------------------
+" 片段集合插件
+
+" <vim-go 插件配置>
+" -----------------------------------------------------------------------------
+" golang开发插件
+"
+let g:go_play_open_browser = 0
+let g:go_fmt_fail_silently = 1
+let g:go_fmt_command = 'goimports'
+let g:go_fmt_autosave = 1
+
+let g:go_bin_path = g:myGoProgramPath
+
+let g:go_highlight_functions = 1
+let g:go_highlight_methods = 1
+let g:go_highlight_structs = 1
+let g:go_highlight_operators = 1
+let g:go_highlight_build_constraints = 1
+
+autocmd FileType go nmap <Leader>s <Plug>(go-implements)
+autocmd FileType go nmap <Leader>i <Plug>(go-info)
+autocmd FileType go nmap <Leader>gd <Plug>(go-doc)
+autocmd FileType go nmap <Leader>gv <Plug>(go-doc-vertical)
+autocmd FileType go nmap <leader>r <Plug>(go-run)
+autocmd FileType go nmap <leader>b <Plug>(go-build)
+autocmd FileType go nmap <leader>t <Plug>(go-test)
+autocmd FileType go nmap <leader>c <Plug>(go-coverage)
+autocmd FileType go nmap <Leader>ds <Plug>(go-def-split)
+autocmd FileType go nmap <Leader>dv <Plug>(go-def-vertical)
+autocmd FileType go nmap <Leader>dt <Plug>(go-def-tab)
+autocmd FileType go nmap <Leader>e <Plug>(go-rename)
+
+" <vim-dispatch 插件配置>
+" -----------------------------------------------------------------------------
+" 外部程序make回显至 quickfix 插件
+
+" <SingleCompile 插件配置>
+" -----------------------------------------------------------------------------
+" 单文件编译测试插件
+nmap <silent> <F9> :wall<CR>:SCCompileRun<CR>
+vmap <silent> <F9> <ESC>:wall<CR>:SCCompileRun<CR>
+imap <silent> <F9> <ESC>:wall<CR>:SCCompileRun<CR>
+
+" <vim-pyclewn 插件配置>
+" -----------------------------------------------------------------------------
+" 封装GDB调试插件
+
+" <YouCompleteMe 插件配置>
+" -----------------------------------------------------------------------------
+" 语言分析自动补全插件
+if isdirectory(g:myProjectPath)
+    let g:ycm_global_ycm_extra_conf = g:myProjectPath . '/.ycm_extra_conf.py'
+else
+    if g:isLinux
+        let g:ycm_global_ycm_extra_conf = $HOME . '/.vim/.ycm_extra_conf.py'
+    else
+        let g:ycm_global_ycm_extra_conf = $VIM . '/vimfiles/.ycm_extra_conf.py'
+    endif
+endif
+" 补全功能在注释中同样有效
+let g:ycm_complete_in_comments = 1
+" 允许 vim 加载 .ycm_extra_conf.py 文件，不再提示
+let g:ycm_confirm_extra_conf = 0
+" 开启 YCM 基于标签引擎
+let g:ycm_collect_identifiers_from_tags_files = 1
+" 引入 C++ 标准库tags，只要.ycm_extra_conf.py文件中指定了正确的标准库路径
+set tags+=/data/misc/software/misc./vim/stdcpp.tags
+" YCM 集成 OmniCppComplete 补全引擎，设置其快捷
+imap <Leader>; <C-x><C-o>
+" 补全内容不以分割子窗口形式出现，只显示补全列表
+set completeopt-=preview
+" 从第一个键入字符就开始罗列匹配项
+let g:ycm_min_num_of_chars_for_completion = 1
+" 禁止缓存匹配项，每次都重新生成匹配项
+let g:ycm_cache_omnifunc = 0
+" 语法关键字补全
+let g:ycm_seed_identifiers_with_syntax = 1
+" 修改对C函数的补全快捷键，默认是CTRL + space
+let g:ycm_key_invoke_completion = '<M-;>'
+let g:ycm_key_list_select_completion = ['<leader><C-TAB>', '<Down>']
+let g:ycm_key_list_previous_completion = ['<leader><C-S-TAB>', '<Up>']
+" 设置转到定义处的快捷键，这个功能非常赞
+nmap <silent> <M-]> :YcmCompleter GoToDefinitionElseDeclaration <C-R>=expand("<cword>")<CR><CR>
+let g:ycm_semantic_triggers =  {
+            \   'c' : ['->', '.'],
+            \   'objc' : ['->', '.'],
+            \   'ocaml' : ['.', '#'],
+            \   'cpp,objcpp' : ['->', '.', '::'],
+            \   'perl' : ['->'],
+            \   'php' : ['->', '::', '(', 'use ', 'namespace ', '\'],
+            \   'cs,java,typescript,javascript,d,python,perl6,scala,vb,elixir,go' : ['.'],
+            \   'html': ['<', '"', '</', ' '],
+            \   'vim' : ['re![_a-za-z]+[_\w]*\.'],
+            \   'ruby' : ['.', '::'],
+            \   'lua' : ['.', ':'],
+            \   'erlang' : [':'],
+            \   'haskell' : ['.', 're!.'],
+            \   'css': [ 're!^\s{2,4}', 're!:\s+' ],
+            \ }
+
+" <omnicppcomplete 插件配置>
+" -----------------------------------------------------------------------------
+" 用于C/C++代码补全，这种补全主要针对命名空间、类、结构、共同体等进行补全，详细
+" 说明可以参考帮助或网络教程等
+" 使用前先执行如下 ctags 命令（本配置中可以直接使用 ccvext 插件来执行以下命令）
+" ctags -R --c++-kinds=+p --fields=+iaS --extra=+q
+" 我使用上面的参数生成标签后，对函数使用跳转时会出现多个选择
+" 所以我就将--c++-kinds=+p参数给去掉了，如果大侠有什么其它解决方法希望不要保留呀
+set completeopt=menu                        "关闭预览窗口
+
+" <JavaComplete 插件设置>
+" -----------------------------------------------------------------------------
+" 用于java自动补全
+setlocal omnifunc=javacomplete#Complete
+setlocal completefunc=javacomplete#CompleteParamsInfo
+if has("autocmd")
+  autocmd Filetype java setlocal omnifunc=javacomplete#Complete
+  autocmd FileType java set completefunc=javacomplete#CompleteParamsInfo
+  autocmd FileType java inoremap <expr><CR> pumvisible()?"\<C-Y>":"<CR>"
+  autocmd FileType java inoremap <buffer> . .<C-X><C-O><C-P>
+endif
+
+" <tern_for_vim 插件配置>
+" -----------------------------------------------------------------------------
+" 基于 YouCompleteMe 的 javascript 自动补全插件
+let tern_show_signature_in_pum = 1
+let tern_show_argument_hints = 'on_hold'
+autocmd FileType javascript nnoremap <leader>td :TernDef<CR>
+autocmd FileType javascript setlocal omnifunc=tern#Complete
+
+" <vim-scala 插件设置>
+" -----------------------------------------------------------------------------
+" scala插件
+
+
+" }}}
+
+" 7.编译调试和工程管理 " {{{
+
+" <在浏览器解释运行配置>
+" -----------------------------------------------------------------------------
+    " 在浏览器预览 for win32
+if (g:isWindows && g:isGUI)
+    function! ViewInBrowser(name)
+        let file = expand("%:p")
+        execute ':update ' . file
+        let l:browsers = {
+                    \'cr':g:windowsBrowsers['cr'],
+                    \'ff':g:windowsBrowsers['ff'],
+                    \'op':g:windowsBrowsers['op'],
+                    \'sa':g:windowsBrowsers['sa'],
+                    \'ie':g:windowsBrowsers['ie'],
+                    \'ie6':g:windowsBrowsers['ie6'],
+                    \'ie7':g:windowsBrowsers['ie7'],
+                    \'ie8':g:windowsBrowsers['ie8'],
+                    \'ie9':g:windowsBrowsers['ie9'],
+                    \'iea':g:windowsBrowsers['iea']
+        \}
+        let htdocs = g:windowsHtdocs
+        let strpos = stridx(file, substitute(htdocs, '\\\\', '\', 'g'))
+        let file = '"' . file . '"'
+        if strpos == -1
+            execute ':silent !start ' . l:browsers[a:name] . ' file://' . file
+        else
+            let file = substitute(file, htdocs, 'http://127.0.0.1:8090/', 'g')
+            let file = substitute(file, '\\', '/', 'g')
+            execute ':silent !start ' . l:browsers[a:name] file
+        endif
+    endfunction
+    " F10+浏览器首字母简拼，如F10+crtl是chrome
+    nmap <silent> <F10>cr :wall<CR>:call ViewInBrowser("cr")<CR>
+    nmap <silent> <F10>ff :wall<CR>:call ViewInBrowser("ff")<CR>
+    nmap <silent> <F10>op :wall<CR>:call ViewInBrowser("op")<CR>
+    nmap <silent> <F10>sa :wall<CR>:call ViewInBrowser("sa")<CR>
+    nmap <silent> <F10>ie :wall<CR>:call ViewInBrowser("ie")<CR>
+    nmap <silent> <F10>ie6 :wall<CR>:call ViewInBrowser("ie6")<CR>
+    nmap <silent> <F10>ie7 :wall<CR>:call ViewInBrowser("ie7")<CR>
+    nmap <silent> <F10>ie8 :wall<CR>:call ViewInBrowser("ie8")<CR>
+    nmap <silent> <F10>ie9 :wall<CR>:call ViewInBrowser("ie9")<CR>
+    nmap <silent> <F10>iea :wall<CR>:call ViewInBrowser("iea")<CR>
+    imap <silent> <F10>cr <ESC>:wall<CR>:call ViewInBrowser("cr")<CR>
+    imap <silent> <F10>ff <ESC>:wall<CR>:call ViewInBrowser("ff")<CR>
+    imap <silent> <F10>op <ESC>:wall<CR>:call ViewInBrowser("op")<CR>
+    imap <silent> <F10>sa <ESC>:wall<CR>:call ViewInBrowser("sa")<CR>
+    imap <silent> <F10>ie <ESC>:wall<CR>:call ViewInBrowser("ie")<CR>
+    imap <silent> <F10>ie6 <ESC>:wall<CR>:call ViewInBrowser("ie6")<CR>
+    imap <silent> <F10>ie7 <ESC>:wall<CR>:call ViewInBrowser("ie7")<CR>
+    imap <silent> <F10>ie8 <ESC>:wall<CR>:call ViewInBrowser("ie8")<CR>
+    imap <silent> <F10>ie9 <ESC>:wall<CR>:call ViewInBrowser("ie9")<CR>
+    imap <silent> <F10>iea <ESC>:wall<CR>:call ViewInBrowser("iea")<CR>
+    vmap <silent> <F10>cr <ESC>:wall<CR>:call ViewInBrowser("cr")<CR>
+    vmap <silent> <F10>ff <ESC>:wall<CR>:call ViewInBrowser("ff")<CR>
+    vmap <silent> <F10>op <ESC>:wall<CR>:call ViewInBrowser("op")<CR>
+    vmap <silent> <F10>sa <ESC>:wall<CR>:call ViewInBrowser("sa")<CR>
+    vmap <silent> <F10>ie <ESC>:wall<CR>:call ViewInBrowser("ie")<CR>
+    vmap <silent> <F10>ie6 <ESC>:wall<CR>:call ViewInBrowser("ie6")<CR>
+    vmap <silent> <F10>ie7 <ESC>:wall<CR>:call ViewInBrowser("ie7")<CR>
+    vmap <silent> <F10>ie8 <ESC>:wall<CR>:call ViewInBrowser("ie8")<CR>
+    vmap <silent> <F10>ie9 <ESC>:wall<CR>:call ViewInBrowser("ie9")<CR>
+    vmap <silent> <F10>iea <ESC>:wall<CR>:call ViewInBrowser("iea")<CR>
+endif
+
+" 在浏览器预览 for linux
+if (g:isLinux)
+    function! ViewInBrowser(name)
+        let file = expand("%:p")
+        let l:browsers = {
+                    \'cr':g:linuxBrowsers['cr'],
+                    \'ff':g:linuxBrowsers['ff'],
+                    \'sa':g:linuxBrowsers['sa'],
+                    \'mcr':g:linuxBrowsers['mcr'],
+                    \'mff':g:linuxBrowsers['mff']
+        \}
+        let htdocs = g:linuxHtdocs
+        let strpos = stridx(file, substitute(htdocs, '\\\\', '\', 'g'))
+        let file = '"' . file . '"'
+        execute ':update ' . file
+        "echo file .' ## '. htdocs
+        if strpos == -1
+            execute ':silent ! ' . l:browsers[a:name] . ' file://' . file
+        else
+            let file = substitute(file, htdocs, 'http://127.0.0.1:8090/', 'g')
+            let file = substitute(file, '\\', '/', 'g')
+            execute ':silent ! ' . l:browsers[a:name] file
+        endif
+    endfunction
+    " F10+浏览器首字母简拼，如F10+cr是chrome
+    map <silent> <F10>cr :wall<CR>:call ViewInBrowser("cr")<CR>
+    map <silent> <F10>ff :wall<CR>:call ViewInBrowser("ff")<CR>
+    map <silent> <F10>sa :wall<CR>:call ViewInBrowser("sa")<CR>
+    map <silent> <F10>mcr :wall<CR>:call ViewInBrowser("mcr")<CR>
+    map <silent> <F10>mff :wall<CR>:call ViewInBrowser("mff")<CR>
+    imap <silent> <F10>cr <ESC>:wall<CR>:call ViewInBrowser("cr")<CR>
+    imap <silent> <F10>ff <ESC>:wall<CR>:call ViewInBrowser("ff")<CR>
+    imap <silent> <F10>sa <ESC>:wall<CR>:call ViewInBrowser("sa")<CR>
+    imap <silent> <F10>mcr <ESC>:wall<CR>:call ViewInBrowser("mcr")<CR>
+    imap <silent> <F10>mff <ESC>:wall<CR>:call ViewInBrowser("mff")<CR>
+    vmap <silent> <F10>cr <ESC>:wall<CR>:call ViewInBrowser("cr")<CR>
+    vmap <silent> <F10>ff <ESC>:wall<CR>:call ViewInBrowser("ff")<CR>
+    vmap <silent> <F10>sa <ESC>:wall<CR>:call ViewInBrowser("sa")<CR>
+    vmap <silent> <F10>mcr <ESC>:wall<CR>:call ViewInBrowser("mcr")<CR>
+    vmap <silent> <F10>mff <ESC>:wall<CR>:call ViewInBrowser("mff")<CR>
+endif
+
+" <编译、运行、调试配置>
+" -----------------------------------------------------------------------------
+" 初始化设置
+function! SwitchToDebug()
+    g:myIsDebug = 1
+endfunction
+function! SwitchToRelease()
+    g:myIsDebug = 0
+endfunction
+command! SwitchToDebug call SwitchToDebug()
+command! SwitchToRelease call SwitchToRelease()
+
+" <默认编译、运行、调试配置>
+" -----------------------------------------------------------------------------
+" 默认设置工具链
+"
+" F8
+function! DefaultMakeClear()
+    if isdirectory(g:myProjectMakePath)
+        execute 'cd ' . g:myProjectMakePath
+    else
+        echo 'Configure is "g:myProjectMakePath" no existing, switch current path!'
+    endif
+
+    if g:myMakeCleanTools != ''
+        execute '!' . g:myMakeCleanTools
+    else
+        if g:isLinux
+            execute '!make clean'
+        else
+            execute '!mingw32-make clean'
+        endif
+    endif
+endfunction
+nmap <silent> <F8> :wall<CR>:call DefaultMakeClear()<CR>
+vmap <silent> <F8> <ESC>:wall<CR>:call DefaultMakeClear()<CR>
+imap <silent> <F8> <ESC>:wall<CR>:call DefaultMakeClear()<CR>
+
+" F7
+function! DefaultMake()
+    if isdirectory(g:myProjectMakePath)
+        execute 'cd ' . g:myProjectMakePath
+    else
+        echo 'Configure is "g:myProjectMakePath" no existing, switch current path!'
+    endif
+
+    if g:myIsDebug
+        if g:myMakeDebugTools != ''
+            execute '!' . g:myMakeDebugTools
+        else
+            if g:isLinux
+                execute '!make -j4'
+            else
+                execute '!mingw32-make -j4'
+            endif
+        endif
+    else
+        if g:myMakeReleaseTools != ''
+            execute '!' . g:myMakeReleaseTools
+        else
+            if g:isLinux
+                execute '!make -j4'
+            else
+                execute '!mingw32-make -j4'
+            endif
+        endif
+
+    endif
+endfunction
+nmap <silent> <F7> :wall<CR>:call DefaultMake()<CR>
+vmap <silent> <F7> <ESC>:wall<CR>:call DefaultMake()<CR>
+imap <silent> <F7> <ESC>:wall<CR>:call DefaultMake()<CR>
+
+" F6
+function! DefaultRun()
+    if g:myRunPreMake
+        call DefaultMake()
+    endif
+    if isdirectory(g:myProgramPath)
+        execute 'cd ' . g:myProgramPath
+    else
+        echo 'Configure is "g:myProgramPath" no existing, switch current path!'
+    endif
+
+    if g:myProgramOneParam != ''
+        if g:myProgramTwoParam != ''
+            execute '!' . g:myProgramOneParam . ' ' . g:myProgramName . ' ' . g:myProgramTwoParam
+        else
+            execute '!' . g:myProgramOneParam . ' ' . g:myProgramName
+        endif
+    else
+        if g:myProgramTwoParam != ''
+            execute '!' . g:myProgramName . ' ' . g:myProgramTwoParam
+        else
+            execute '!' . g:myProgramName
+        endif
+    endif
+endfunction
+nmap <silent> <F6> :wall<CR>:call DefaultRun()<CR>
+vmap <silent> <F6> <ESC>:wall<CR>:call DefaultRun()<CR>
+imap <silent> <F6> <ESC>:wall<CR>:call DefaultRun()<CR>
+
+" F5
+function! DefaultDebug()
+    if g:myIsDebug
+        call DefaultMake()
+        if isdirectory(g:myProgramPath)
+            execute 'cd ' . g:myProgramPath
+        else
+            echo 'Configure is "g:myProgramPath" no existing, switch current path!'
+        endif
+
+        if g:myDebugTools != ''
+            execute '!' . g:myDebugTools . ' ' . g:myProgramName
+        else
+            execute ':Pyclewn'
+            execute ':Cfile ' . g:myProgramName
+            execute ':Cmapkeys'
+        endif
+    else
+        echo 'Not debug version!!'
+    endif
+endfunction
+nmap <silent> <F5> :wall<CR>:call DefaultDebug()<CR>
+vmap <silent> <F5> <ESC>:wall<CR>:call DefaultDebug()<CR>
+imap <silent> <F5> <ESC>:wall<CR>:call DefaultDebug()<CR>
+
+" <Go 编译、运行、调试配置>
+" -----------------------------------------------------------------------------
+" 设置Go工具链
+"
+" F9
+function! TestGolang()
+    if isdirectory(g:myGoProjectPath)
+        execute 'cd ' . g:myGoProjectPath
+    else
+        echo 'Configure is "g:myGoProjectPath" no existing, switch current path!'
+    endif
+
+    if g:myGoTestTools != ''
+        execute '!' . g:myGoTestTools
+    else
+        execute '!go test -v ./...'
+    endif
+endfunction
+autocmd FileType go nmap <silent> <F9> :wall<CR>:call TestGolang()<CR>
+autocmd FileType go vmap <silent> <F9> <ESC>:wall<CR>:call TestGolang()<CR>
+autocmd FileType go imap <silent> <F9> <ESC>:wall<CR>:call TestGolang()<CR>
+
+" F8
+function! MakeClearGolang()
+    if isdirectory(g:myGoProjectPath)
+        execute 'cd ' . g:myGoProjectPath
+    else
+        echo 'Configure is "g:myGoProjectPath" no existing, switch current path!'
+    endif
+
+    if g:myGoMakeCleanTools != ''
+        execute '!' . g:myGoMakeCleanTools
+    else
+        execute '!go clean -i ./...'
+    endif
+endfunction
+autocmd FileType go nmap <silent> <F8> :wall<CR>:call MakeClearGolang()<CR>
+autocmd FileType go vmap <silent> <F8> <ESC>:wall<CR>:call MakeClearGolang()<CR>
+autocmd FileType go imap <silent> <F8> <ESC>:wall<CR>:call MakeClearGolang()<CR>
+
+" F7
+function! MakeGolang()
+    if isdirectory(g:myGoProjectPath)
+        execute 'cd ' . g:myGoProjectPath
+    else
+        echo 'Configure is "g:myGoProjectPath" no existing, switch current path!'
+    endif
+
+    if g:myIsDebug
+        if g:myGoMakeDebugTools != ''
+            execute '!' . g:myGoMakeDebugTools
+        else
+            execute '!go install -v -gcflags "-N -l" ./...'
+        endif
+    else
+        if g:myGoMakeReleaseTools != ''
+            execute '!' . g:myGoMakeReleaseTools
+        else
+            execute '!go install -v -ldflags "-s -w" ./...'
+        endif
+    endif
+endfunction
+autocmd FileType go nmap <silent> <F7> :wall<CR>:call MakeGolang()<CR>
+autocmd FileType go vmap <silent> <F7> <ESC>:wall<CR>:call MakeGolang()<CR>
+autocmd FileType go imap <silent> <F7> <ESC>:wall<CR>:call MakeGolang()<CR>
+
+" F6
+function! RunGolang()
+    if g:myRunPreMake
+        call MakeGolang()
+    endif
+    if isdirectory(g:myGoProgramPath)
+        execute 'cd ' . g:myGoProgramPath
+    else
+        echo 'Configure is "g:myGoProgramPath" no existing, switch current path!'
+    endif
+
+    if g:myGoProgramOneParam != ''
+        if g:myGoProgramTwoParam != ''
+            execute '!' . g:myGoProgramOneParam . ' ' . g:myGoProgramName . ' ' . g:myGoProgramTwoParam
+        else
+            execute '!' . g:myGoProgramOneParam . g:myGoProgramName
+        endif
+    else
+        if g:myGoProgramTwoParam != ''
+            execute '!' . g:myGoProgramName . ' ' . g:myGoProgramTwoParam
+        else
+            execute '!' . g:myGoProgramName
+        endif
+    endif
+endfunction
+autocmd FileType go nmap <silent> <F6> :wall<CR>:call RunGolang()<CR>
+autocmd FileType go vmap <silent> <F6> <ESC>:wall<CR>:call RunGolang()<CR>
+autocmd FileType go imap <silent> <F6> <ESC>:wall<CR>:call RunGolang()<CR>
+
+" F5
+function! DebugGolang()
+    if g:myIsDebug
+        call MakeGolang()
+        if isdirectory(g:myGoProgramPath)
+            execute 'cd ' . g:myGoProgramPath
+        else
+            echo 'Configure is "g:myGoProgramPath" no existing, switch current path!'
+        endif
+
+        if g:myGoDebugTools != ''
+            execute '!' . g:myGoDebugTools . ' ' . g:myGoProgramName
+        else
+            execute ':Pyclewn'
+            execute ':Cfile ' . g:myGoProgramName
+            execute ':Cmapkeys'
+        endif
+
+    else
+        echo "Not debug version!!"
+    endif
+endfunction
+autocmd FileType go nmap <silent> <F5> :wall<CR>:call DebugGolang()<CR>
+autocmd FileType go vmap <silent> <F5> <ESC>:wall<CR>:call DebugGolang()<CR>
+autocmd FileType go imap <silent> <F5> <ESC>:wall<CR>:call DebugGolang()<CR>
+
+" <Python 编译、运行、调试配置>
+" -----------------------------------------------------------------------------
+" 设置Python工具链
+"
+" F6
+function! RunPython()
+    let mp = &makeprg
+    let ef = &errorformat
+    let exeFile = expand("%:t")
+    set efm=%C\ %.%#,%A\ \ File\ \"%f\"\\,\ line\ %l%.%#,%Z%[%^\ ]%\\@=%m
+    echohl WarningMsg | echo 'Python Compiling...'
+    make %
+    copen
+    let &makeprg     = mp
+    let &errorformat = ef
+endfunction
+autocmd FileType go nmap <silent> <F6>p :setlocal makeprg=python\ -u<CR>:call RunPython()<CR>
+autocmd FileType go nmap <silent> <F6>pc :setlocal makeprg=python\ -m<CR>:call RunPython()<CR>
+autocmd FileType go nmap <silent> <F6>po :setlocal makeprg=python\ -O\ -m<CR>:call RunPython()<CR>
+autocmd FileType go vmap <silent> <F6>p <ESC>:setlocal makeprg=python\ -u<CR>:call RunPython()<CR>
+autocmd FileType go vmap <silent> <F6>pc <ESC>:setlocal makeprg=python\ -m<CR>:call RunPython()<CR>
+autocmd FileType go vmap <silent> <F6>po <ESC>:setlocal makeprg=python\ -O\ -m<CR>:call RunPython()<CR>
+autocmd FileType go imap <silent> <F6>p <ESC>:setlocal makeprg=python\ -u<CR>:call RunPython()<CR>
+autocmd FileType go imap <silent> <F6>pc <ESC>:setlocal makeprg=python\ -m<CR>:call RunPython()<CR>
+autocmd FileType go vmap <silent> <F6>po <ESC>:setlocal makeprg=python\ -O\ -m<CR>:call RunPython()<CR>
+
+" F5
+autocmd FileType python nmap <silent> <F5> :wall<CR>:Pyclewn pdb %<CR>
+autocmd FileType python vmap <silent> <F5> <ESC>:wall<CR>:Pyclewn pdb %<CR>
+autocmd FileType python imap <silent> <F5> <ESC>:wall<CR>:Pyclewn pdb %<CR>
+
+" }}}
+
+" 8.外部工具设置及加载插件 " {{{
+
+" <cscope 工具配置>
+" -----------------------------------------------------------------------------
+" 用Cscope自己的话说 - "你可以把它当做是超过频的ctags"
+if has("cscope")
+    "设定可以使用 quickfix 窗口来查看 cscope 结果
+    set cscopequickfix=s-,c-,d-,i-,t-,e-
+    "使支持用 Ctrl+]  和 Ctrl+t 快捷键在代码间跳转
+    set cscopetag
+    "如果你想反向搜索顺序设置为1
+    set csto=0
+    "在当前目录中添加任何数据库
+    if filereadable("cscope.out")
+        cs add cscope.out
+    "否则添加数据库环境中所指出的
+    elseif $CSCOPE_DB != ""
+        cs add $CSCOPE_DB
+    endif
+    set cscopeverbose
+    "快捷键设置
+    "查找C语言符号，即查找函数名、宏、枚举值等出现的地方
+    nmap <C-\>s :cs find s <C-R>=expand("<cword>")<CR><CR>
+    "查找函数、宏、枚举等定义的位置，类似ctags所提供的功能
+    nmap <C-\>g :cs find g <C-R>=expand("<cword>")<CR><CR>
+    "查找调用本函数的函数
+    nmap <C-\>c :cs find c <C-R>=expand("<cword>")<CR><CR>
+    "查找指定的字符串
+    nmap <C-\>t :cs find t <C-R>=expand("<cword>")<CR><CR>
+    "查找egrep模式，相当于egrep功能，但查找速度快多了
+    nmap <C-\>e :cs find e <C-R>=expand("<cword>")<CR><CR>
+    "查找并打开文件，类似vim的find功能
+    nmap <C-\>f :cs find f <C-R>=expand("<cfile>")<CR><CR>
+    "查找包含本文件的文件
+    nmap <C-\>i :cs find i ^<C-R>=expand("<cfile>")<CR>$<CR>
+    "查找本函数调用的函数
+    nmap <C-\>d :cs find d <C-R>=expand("<cword>")<CR><CR>
+endif
+
+" <ctags 工具配置>
+" -----------------------------------------------------------------------------
+" 对浏览代码非常的方便,可以在函数,变量之间跳转等
+" <C-t> 返回
+" <C-]> 跳转到光标处的函数或变量
+set tags=./tags;        "向上级目录递归查找tags文件（好像只有在Windows下才有用）
+
+" <gvimfullscreen 工具配置> 请确保已安装了工具
+" -----------------------------------------------------------------------------
+" 用于 Windows Gvim 全屏窗口，可用 F11 切换
+" 全屏后再隐藏菜单栏、工具栏、滚动条效果更好
+if (g:isWindows && g:isGUI)
+    nmap <F11> :call libcallnr("gvimfullscreen.dll", "ToggleFullScreen", 0)<CR>:call TopWindow()<CR>
+    vmap <F11> <ESC>:call libcallnr("gvimfullscreen.dll", "ToggleFullScreen", 0)<CR>:call TopWindow()<CR>
+    imap <F11> <ESC>:call libcallnr("gvimfullscreen.dll", "ToggleFullScreen", 0)<CR>:call TopWindow()<CR>
+else
+    nmap <F11> :call system("wmctrl -ir " . v:windowid . " -b toggle,fullscreen")<CR>
+    vmap <F11> <ESC>:call system("wmctrl -ir " . v:windowid . " -b toggle,fullscreen")<CR>
+    imap <F11> <ESC>:call system("wmctrl -ir " . v:windowid . " -b toggle,fullscreen")<CR>
+endif
+
+" <vimtweak 工具配置> 请确保以已装了工具
+" -----------------------------------------------------------------------------
+" 这里只用于窗口透明与置顶
+" 常规模式下 Ctrl + Up 增加不透明度，Ctrl + Down 减少不透明度
+" <Leader>tw 窗口置顶与否切换
+if (g:isWindows && g:isGUI)
+    let g:currentAlpha = 255
+    let g:topMost = 0
+    function! AlphaAdd()
+        let g:currentAlpha = g:currentAlpha + 10
+        if g:currentAlpha > 255
+            let g:currentAlpha = 255
+        endif
+        call libcallnr("vimtweak.dll", "SetAlpha", g:currentAlpha)
+    endfunction
+    function! AlphaSub()
+        let g:currentAlpha = g:currentAlpha - 10
+        if g:currentAlpha < 155
+            let g:currentAlpha = 155
+        endif
+        call libcallnr("vimtweak.dll", "SetAlpha", g:currentAlpha)
+    endfunction
+    function! TopWindow()
+        if  g:topMost == 0
+            call libcallnr("vimtweak.dll", "EnableTopMost", 1)
+            let g:topMost = 1
+        else
+            call libcallnr("vimtweak.dll", "EnableTopMost", 0)
+            let g:topMost = 0
+        endif
+    endfunction
+
+    "快捷键设置
+    map <C-up> :call AlphaAdd()<CR>
+    map <C-down> :call AlphaSub()<CR>
+    map <Leader>tw :call TopWindow()<CR>
+    imap <C-up> <ESC>:call AlphaAdd()<CR>
+    imap <C-down> <ESC>:call AlphaSub()<CR>
+    imap <Leader>tw <ESC>:call TopWindow()<CR>
+    vmap <C-up> <ESC>:call AlphaAdd()<CR>
+    vmap <C-down> <ESC>:call AlphaSub()<CR>
+    vmap <Leader>tw <ESC>:call TopWindow()<CR>
+endif
+
+" <python 补全 jedi 引擎的安装>
+" -----------------------------------------------------------------------------
+" 先安装setuptools
+" 命令行工具cd切换到pip的目录，找到setup.py文件，然后输入python setup.py install
+
+" <javascript 补全 tern 引擎的安装>
+" -----------------------------------------------------------------------------
+" 详细过程见其他文档或搜索
+
+" <根据不同情况加载插件>
+" -----------------------------------------------------------------------------
+" 为解决E15,E117等问题，必须放在最后
+filetype on                                   "启用文件类型侦测
+filetype plugin on                            "针对不同的文件类型加载对应的插件
+filetype plugin indent on                     "启用缩进
+set shortmess=atI                             "去掉欢迎界面
+
+autocmd FileType php set omnifunc=phpcomplete#Complete
+autocmd FileType ruby set omnifunc=rubycomplete#Complete
+autocmd FileType html set omnifunc=htmlcomplete#Complete
+autocmd FileType css set omnifunc=csscomplete#Complete
+autocmd FileType sql set omnifunc=sqlcomplete#Complete
+autocmd FileType xml set omnifunc=xmlcomplete#Complete
+
+autocmd Filetype php,ruby,html,css,sql,xml inoremap <buffer> . .<C-X><C-O><C-P>
+
+" <windows 下解决 Quickfix 乱码问题>
+" -----------------------------------------------------------------------------
+" windows 默认编码为 cp936，而 Gvim(Vim) 内部编码为 utf-8，所以常常输出为乱码
+" 以下代码可以将编码为 cp936 的输出信息转换为 utf-8 编码，以解决输出乱码问题
+" 但好像只对输出信息全部为中文才有满意的效果，如果输出信息是中英混合的，那可能
+" 不成功，会造成其中一种语言乱码，输出信息全部为英文的好像不会乱码
+" 如果输出信息为乱码的可以试一下下面的代码，如果不行就还是给它注释掉
+
+" if g:isWindows
+"     function QfMakeConv()
+"         let qflist = getqflist()
+"         for i in qflist
+"            let i.text = iconv(i.text, "cp936", "utf-8")
+"         endfor
+"         call setqflist(qflist)
+"      endfunction
+"      au QuickfixCmdPost make call QfMakeConv()
+" endif
+
+" }}}
+
+" 备注 " {{{
+
+" 注：上面配置中的"<Leader>"在本软件中设置为"\"键（引号里的反斜杠），如<Leader>t
+" 指在常规模式下按"\"键加"t"键，这里不是同时按，而是先按"\"键后按"t"键，间隔在一
+" 秒内，而<Leader>cs是先按"\"键再按"c"又再按"s"键
+
+" <使 用 说 明>
+" -----------------------------------------------------------------------------
+" 此为 Windows Gvim7.4 绿色版，其中的插件与配置文件在 Linux 下同样适用（我是在
+" Ubuntu 下测试的）。对于Windows 用户，直接将下载到的文件解压，并将程序主目录加入
+" 系统变量即可（也就是将 vim74 目录加入 Path 系统变量）；当然，如果不加入系统变量也
+" 可以使用，但 Ctags 与 Cscope 的相关功能就不能使用了，同时窗口的透明与置顶功能也不
+" 能使用，因为我将这些功能相关的非 vim 插件放在了 vim74 目录里（我是用 win7 64 位与
+" 32 位测试的，没有问题）。设置好后就启动 vim74 目录里的 gvim.exe 文件就行了（当然
+" 也可以给它创建个桌面快捷方式）。而对于 Linux 用户，先确保安装了完整的 vim （如果
+" 是 Ubuntu 就直接安装软件中心的 vim 即可），并安装好 Ctags 与 Cscope ，不然可能出
+" 现 vim 加载错误提示；这些完成后，直接将解压到的文件中的 vimfiles 目录与 _vimrc 文
+" 件重命名为 .vim 目录与 .vimrc 文件，并将其复制到 ~/ 目录即可（也就是 Linux 系统的
+" 用户主目录），我是用 Ubuntu 测试的没有问题。
+"
+" 依赖项：
+" 1.python2.7 python3.2 pip pep8 pyflakes curses
+" 2.nodejs npm jshint csslint jsonlint coffeelint js-beautify jsbeautify
+" 3.gcc gdb gdb64 make (windows的C:\mingw一定要有)
+" 4.git svn wget&curl
+" 5.ctags
+" 6.cscope
+" 7.Valgrind
+" 8.YouCompleteMe编译指令：./install.sh --clang-completer
+" 9.pywin32 pyclewn
+" 10.iconv
+" 11.font
+" 12.chrome firefox Safari IETester
+" 13.golang $GOBIN $GOPATH的设置
+" 14.linux需执行convert_vim_linux进行转化
+" 15.linux下需要安装wmctrl用以支持F11全屏
+" 16.markdown需要借助chrome的Markdown Preview Plus插件来配置实时预览
+" 17.java8
+" 18.npm -g install instant-markdown-d
+
+" }}}
+
