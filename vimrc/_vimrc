@@ -162,9 +162,6 @@ endif
 " <Linux Gvim/Vim 默认配置> 做了一点修改
 " -----------------------------------------------------------------------------
 if g:isLinux
-    source $VIMRUNTIME/mswin.vim
-    behave mswin
-
     set hlsearch        "高亮搜索
     set incsearch       "在输入要搜索的文字时，实时匹配
 
@@ -1242,11 +1239,7 @@ let c_cpp_comments = 0
 " <molokai 插件配置>
 " -----------------------------------------------------------------------------
 "  仿sublime主题插件
-if g:isGUI
-    colorscheme molokai
-else
-    " 设置终端主题为默认
-endif
+colorscheme molokai
 
 " <Syntastic 插件配置>
 " -----------------------------------------------------------------------------
