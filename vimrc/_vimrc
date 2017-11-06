@@ -570,6 +570,7 @@ Plugin 'marijnh/tern_for_vim'
 Plugin 'tpope/vim-dispatch'
 Plugin 'xuhdev/SingleCompile'
 Plugin 'derekwyatt/vim-scala'
+Plugin 'aklt/plantuml-syntax'
 
 if g:isLinux
     Plugin 'scrooloose/syntastic'
